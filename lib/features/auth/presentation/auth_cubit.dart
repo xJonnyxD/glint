@@ -4,7 +4,7 @@ import 'auth_state.dart';
 
 /// AuthCubit — maneja toda la lógica de autenticación.
 /// Se comunica con Supabase y actualiza el estado de la app.
-class AuthCubit extends Cubit<AuthState> {
+class AuthCubit extends Cubit<GlintAuthState> {
   final SupabaseClient _supabase;
 
   AuthCubit(this._supabase) : super(AuthInitial()) {

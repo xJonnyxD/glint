@@ -41,7 +41,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final textTheme   = Theme.of(context).textTheme;
 
     return Scaffold(
-      body: BlocConsumer<AuthCubit, AuthState>(
+      body: BlocConsumer<AuthCubit, GlintAuthState>(
         // BlocConsumer escucha cambios de estado y reacciona
         listener: (context, state) {
           if (state is AuthError) {

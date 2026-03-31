@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_screen.dart';
-import 'package:glint/features/auth/presentation/auth_state.dart';
+import 'package:glint/features/auth/presentation/auth_state.dart' show AuthInitial, AuthLoading, AuthAuthenticated;
 import 'package:glint/shared/widgets/placeholder_screen.dart';
 
 /// Router principal de Glint usando GoRouter
