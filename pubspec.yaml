@@ -1,0 +1,99 @@
+name: glint
+description: "Glint - Super-app de productividad, hábitos y finanzas personales."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # --- State Management ---
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.7
+
+  # --- Navegación ---
+  go_router: ^15.1.2
+
+  # --- Backend / Auth ---
+  supabase_flutter: ^2.9.1
+  google_sign_in: ^6.2.2
+  sign_in_with_apple: ^6.1.4
+
+  # --- Base de datos local ---
+  drift: ^2.23.1
+  sqflite: ^2.3.3
+  hive_flutter: ^1.1.0
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # --- Seguridad ---
+  flutter_secure_storage: ^9.2.4
+  local_auth: ^2.3.0
+  encrypt: ^5.0.3
+
+  # --- DI ---
+  get_it: ^8.0.3
+  injectable: ^2.5.0
+
+  # --- Modelos / Serialización ---
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # --- Red ---
+  connectivity_plus: ^6.1.4
+
+  # --- Utilidades ---
+  intl: ^0.20.2
+  shared_preferences: ^2.5.3
+  uuid: ^4.5.1
+  rxdart: ^0.28.0
+  package_info_plus: ^8.3.0
+  device_info_plus: ^11.4.0
+
+  # --- UI / Gráficos ---
+  fl_chart: ^1.0.0
+  table_calendar: ^3.2.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  lottie: ^3.3.1
+  flutter_animate: ^4.5.2
+  image_picker: ^1.1.2
+
+  # --- Backup / Exportación ---
+  googleapis: ^14.0.0
+  googleapis_auth: ^1.6.0
+  csv: ^6.0.0
+  share_plus: ^10.1.4
+
+  # --- Notificaciones / Background ---
+  awesome_notifications: ^0.10.1
+  workmanager: ^0.5.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # --- Generadores de código ---
+  build_runner: ^2.4.14
+  freezed: ^2.5.8
+  json_serializable: ^6.9.5
+  drift_dev: ^2.23.1
+  injectable_generator: ^2.7.0
+
+  # --- Testing ---
+  mocktail: ^1.0.4
+  # bloc_test se agrega cuando se implementen los primeros BLoCs
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
