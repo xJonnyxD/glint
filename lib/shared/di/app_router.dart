@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:glint/core/constants/app_constants.dart';
-
-// Pantallas temporales (se reemplazarán módulo a módulo)
+import 'package:glint/features/auth/presentation/auth_cubit.dart';
+import 'package:glint/features/auth/presentation/auth_screen.dart';
+import 'package:glint/features/auth/presentation/auth_state.dart';
 import 'package:glint/shared/widgets/placeholder_screen.dart';
 
 /// Router principal de Glint usando GoRouter
-/// Shell route para la navegación principal con bottom nav
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   debugLogDiagnostics: true,
@@ -20,20 +21,7 @@ final GoRouter appRouter = GoRouter(
     // ── Auth ─────────────────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.auth,
-      builder: (context, state) =>
-          const PlaceholderScreen(title: 'Autenticación'),
-      routes: [
-        GoRoute(
-          path: 'login',
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Iniciar sesión'),
-        ),
-        GoRoute(
-          path: 'register',
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Crear cuenta'),
-        ),
-      ],
+      builder: (context, state) => const AuthScreen(),
     ),
 
     // ── Home con Shell (bottom nav) ───────────────────────────────────────────
@@ -68,7 +56,7 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
 
-    // ── Configuración (fuera del shell) ───────────────────────────────────────
+    // ── Configuración ─────────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.settings,
       builder: (context, state) =>
@@ -76,13 +64,23 @@ final GoRouter appRouter = GoRouter(
     ),
   ],
 
-  // Redirección global: si no hay sesión activa, ir a auth
+  // Redirección global basada en el estado de autenticación
   redirect: (context, state) {
-    // TODO: Verificar sesión de Supabase aquí
-    // final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
-    // if (!isLoggedIn && !state.matchedLocation.startsWith('/auth')) {
-    //   return AppRoutes.auth;
-    // }
+    final authState = context.read<AuthCubit>().state;
+    final enSplash  = state.matchedLocation == AppRoutes.splash;
+    final enAuth    = state.matchedLocation.startsWith(AppRoutes.auth);
+
+    // Mientras carga o es estado inicial, no redirigir (splash se encarga)
+    if (authState is AuthInitial || authState is AuthLoading) return null;
+
+    final autenticado = authState is AuthAuthenticated;
+
+    // Si no está autenticado y no está en auth ni en splash → ir a login
+    if (!autenticado && !enAuth && !enSplash) return AppRoutes.auth;
+
+    // Si está autenticado y está en auth → ir a home
+    if (autenticado && enAuth) return AppRoutes.routines;
+
     return null;
   },
 
@@ -144,7 +142,7 @@ class HomeShell extends StatelessWidget {
     if (location.startsWith(AppRoutes.habits))   return 1;
     if (location.startsWith(AppRoutes.finance))  return 2;
     if (location.startsWith(AppRoutes.agenda))   return 3;
-    return 4; // perfil
+    return 4;
   }
 
   void _onTap(BuildContext context, int index) {
@@ -158,7 +156,7 @@ class HomeShell extends StatelessWidget {
   }
 }
 
-/// Pantalla de splash temporal
+/// Pantalla de splash — verifica sesión y redirige
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -170,9 +168,15 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navegar al home tras 2 segundos (luego se reemplaza con lógica real)
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) context.go(AppRoutes.routines);
+    // Esperar a que el AuthCubit determine el estado de sesión
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
+        context.go(AppRoutes.routines);
+      } else {
+        context.go(AppRoutes.auth);
+      }
     });
   }
 
@@ -185,7 +189,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo placeholder — reemplazar con logo real
             Container(
               width: 96,
               height: 96,
