@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:glint/core/constants/app_constants.dart';
 import 'auth_cubit.dart';
 import 'auth_state.dart';
 
@@ -44,6 +46,11 @@ class _AuthScreenState extends State<AuthScreen> {
       body: BlocConsumer<AuthCubit, GlintAuthState>(
         // BlocConsumer escucha cambios de estado y reacciona
         listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            // Login exitoso — navegar al home
+            context.go(AppRoutes.routines);
+            return;
+          }
           if (state is AuthError) {
             // Mostrar mensaje de error en un snackbar
             ScaffoldMessenger.of(context).showSnackBar(
