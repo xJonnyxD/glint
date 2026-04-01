@@ -5,6 +5,14 @@ import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_screen.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart' show AuthInitial, AuthLoading, AuthAuthenticated;
+import 'package:glint/features/onboarding/onboarding_screen.dart';
+import 'package:glint/features/routines/presentation/routines_screen.dart';
+import 'package:glint/features/habits/presentation/habits_screen.dart';
+import 'package:glint/features/finance/presentation/finance_screen.dart';
+import 'package:glint/features/finance/presentation/salary_calculator_screen.dart';
+import 'package:glint/features/agenda/presentation/agenda_screen.dart';
+import 'package:glint/features/notes/presentation/notes_screen.dart';
+import 'package:glint/features/profile/presentation/profile_screen.dart';
 import 'package:glint/shared/widgets/placeholder_screen.dart';
 
 /// Router principal de Glint usando GoRouter
@@ -30,30 +38,41 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: AppRoutes.routines,
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Rutinas'),
+          builder: (context, state) => const RoutinesScreen(),
         ),
         GoRoute(
           path: AppRoutes.habits,
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Hábitos'),
+          builder: (context, state) => const HabitsScreen(),
         ),
         GoRoute(
           path: AppRoutes.finance,
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Finanzas'),
+          builder: (context, state) => const FinanceScreen(),
         ),
         GoRoute(
           path: AppRoutes.agenda,
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Agenda'),
+          builder: (context, state) => const AgendaScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.notes,
+          builder: (context, state) => const NotesScreen(),
         ),
         GoRoute(
           path: AppRoutes.profile,
-          builder: (context, state) =>
-              const PlaceholderScreen(title: 'Perfil'),
+          builder: (context, state) => const ProfileScreen(),
         ),
       ],
+    ),
+
+    // ── Onboarding ────────────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.onboarding,
+      builder: (context, state) => const OnboardingScreen(),
+    ),
+
+    // ── Calculadora de Salario SV ─────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.salaryCalculator,
+      builder: (context, state) => const SalaryCalculatorScreen(),
     ),
 
     // ── Configuración ─────────────────────────────────────────────────────────
@@ -128,6 +147,11 @@ class HomeShell extends StatelessWidget {
             label: 'Agenda',
           ),
           NavigationDestination(
+            icon: Icon(Icons.sticky_note_2_outlined),
+            selectedIcon: Icon(Icons.sticky_note_2),
+            label: 'Notas',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Perfil',
@@ -142,7 +166,8 @@ class HomeShell extends StatelessWidget {
     if (location.startsWith(AppRoutes.habits))   return 1;
     if (location.startsWith(AppRoutes.finance))  return 2;
     if (location.startsWith(AppRoutes.agenda))   return 3;
-    return 4;
+    if (location.startsWith(AppRoutes.notes))    return 4;
+    return 5;
   }
 
   void _onTap(BuildContext context, int index) {
@@ -151,12 +176,13 @@ class HomeShell extends StatelessWidget {
       case 1: context.go(AppRoutes.habits);   break;
       case 2: context.go(AppRoutes.finance);  break;
       case 3: context.go(AppRoutes.agenda);   break;
-      case 4: context.go(AppRoutes.profile);  break;
+      case 4: context.go(AppRoutes.notes);    break;
+      case 5: context.go(AppRoutes.profile);  break;
     }
   }
 }
 
-/// Pantalla de splash — verifica sesión y redirige
+/// Pantalla de splash animada — verifica onboarding y sesión antes de redirigir
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -164,63 +190,143 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _escala;
+  late Animation<double> _opacidad;
+  late Animation<Offset> _subtitulo;
+
   @override
   void initState() {
     super.initState();
-    // Esperar a que el AuthCubit determine el estado de sesión
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      final authState = context.read<AuthCubit>().state;
-      if (authState is AuthAuthenticated) {
-        context.go(AppRoutes.routines);
-      } else {
-        context.go(AppRoutes.auth);
-      }
-    });
+
+    // Configurar animaciones
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _escala = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.elasticOut)),
+    );
+
+    _opacidad = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.3, 0.7, curve: Curves.easeIn)),
+    );
+
+    _subtitulo = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+      CurvedAnimation(parent: _ctrl, curve: const Interval(0.5, 1.0, curve: Curves.easeOut)),
+    );
+
+    _ctrl.forward();
+
+    // Después de la animación, redirigir
+    Future.delayed(const Duration(milliseconds: 2200), _redirigir);
+  }
+
+  Future<void> _redirigir() async {
+    if (!mounted) return;
+
+    // Verificar si ya vio el onboarding
+    final onboardingVisto = await yaVioOnboarding();
+    if (!mounted) return;
+
+    if (!onboardingVisto) {
+      context.go(AppRoutes.onboarding);
+      return;
+    }
+
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) {
+      context.go(AppRoutes.routines);
+    } else {
+      context.go(AppRoutes.auth);
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: colorScheme.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Icon(
-                Icons.auto_awesome,
-                size: 48,
-                color: colorScheme.onPrimary,
+            // Logo animado con escala elástica
+            ScaleTransition(
+              scale: _escala,
+              child: Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(60),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.auto_awesome,
+                  size: 56,
+                  color: colorScheme.primary,
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Glint',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+            const SizedBox(height: 28),
+
+            // Nombre de la app con fade
+            FadeTransition(
+              opacity: _opacidad,
+              child: Text(
+                'Glint',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1,
+                    ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Tu vida, organizada',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withAlpha(153),
-                  ),
+
+            // Subtítulo con slide desde abajo
+            SlideTransition(
+              position: _subtitulo,
+              child: FadeTransition(
+                opacity: _opacidad,
+                child: Text(
+                  'Tu vida, organizada ✨',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Colors.white70,
+                      ),
+                ),
+              ),
             ),
-            const SizedBox(height: 48),
-            CircularProgressIndicator(
-              color: colorScheme.primary,
-              strokeWidth: 2,
+            const SizedBox(height: 64),
+
+            // Indicador de carga sutil
+            FadeTransition(
+              opacity: _opacidad,
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  color: Colors.white38,
+                  strokeWidth: 2,
+                ),
+              ),
             ),
           ],
         ),

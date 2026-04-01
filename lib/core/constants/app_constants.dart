@@ -72,7 +72,10 @@ abstract class AppRoutes {
   static const String financeDetail  = '/home/finance/:id';
   static const String agenda         = '/home/agenda';
   static const String profile        = '/home/profile';
-  static const String settings       = '/settings';
-  static const String backup         = '/settings/backup';
-  static const String gamification   = '/home/gamification';
+  static const String onboarding       = '/onboarding';
+  static const String notes            = '/home/notes';
+  static const String settings         = '/settings';
+  static const String backup           = '/settings/backup';
+  static const String gamification     = '/home/gamification';
+  static const String salaryCalculator = '/salary-calculator';
 }

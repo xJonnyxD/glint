@@ -72,7 +72,6 @@ dependencies:
 
   # --- Notificaciones / Background ---
   awesome_notifications: ^0.10.1
-  workmanager: ^0.5.2
 
 dev_dependencies:
   flutter_test:

@@ -57,13 +57,18 @@ class AuthCubit extends Cubit<GlintAuthState> {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'nombre': nombre}, // guardamos el nombre del usuario
+        data: {'nombre': nombre},
       );
-      if (response.user != null) {
-        // Supabase envía un email de confirmación por defecto
-        emit(AuthUnauthenticated());
-        // Nota: el estado vuelve a unauthenticated porque el email
-        // aún no fue confirmado. El usuario debe revisar su correo.
+      if (response.session != null && response.user != null) {
+        // Si Supabase no requiere confirmación de email → sesión activa directo
+        emit(AuthAuthenticated(response.user!));
+      } else if (response.user != null) {
+        // Supabase requiere confirmar email → avisar al usuario
+        emit(AuthError(
+          'Cuenta creada. Revisa tu correo $email y confirma tu cuenta antes de iniciar sesión.',
+        ));
+      } else {
+        emit(AuthError('No se pudo crear la cuenta. Intenta de nuevo.'));
       }
     } on AuthException catch (e) {
       emit(AuthError(_traducirError(e.message)));
@@ -99,21 +104,42 @@ class AuthCubit extends Cubit<GlintAuthState> {
 
   /// Traduce los mensajes de error de inglés a español
   String _traducirError(String mensaje) {
-    if (mensaje.contains('Invalid login credentials')) {
+    final m = mensaje.toLowerCase();
+    if (m.contains('invalid login credentials') ||
+        m.contains('invalid email or password') ||
+        m.contains('wrong password')) {
       return 'Email o contraseña incorrectos.';
     }
-    if (mensaje.contains('Email not confirmed')) {
-      return 'Debes confirmar tu email. Revisa tu bandeja de entrada.';
+    if (m.contains('email not confirmed') ||
+        m.contains('not confirmed')) {
+      return 'Debes confirmar tu email. Revisa tu bandeja de entrada y la carpeta de spam.';
     }
-    if (mensaje.contains('User already registered')) {
-      return 'Ya existe una cuenta con ese email.';
+    if (m.contains('user already registered') ||
+        m.contains('already been registered') ||
+        m.contains('already exists')) {
+      return 'Ya existe una cuenta con ese email. Intenta iniciar sesión.';
     }
-    if (mensaje.contains('Password should be at least')) {
+    if (m.contains('password should be at least') ||
+        m.contains('password is too short')) {
       return 'La contraseña debe tener al menos 6 caracteres.';
     }
-    if (mensaje.contains('Unable to validate email')) {
-      return 'El email no es válido.';
+    if (m.contains('unable to validate email') ||
+        m.contains('invalid email')) {
+      return 'El email ingresado no es válido.';
     }
-    return 'Ocurrió un error. Intenta de nuevo.';
+    if (m.contains('network') ||
+        m.contains('connection') ||
+        m.contains('timeout') ||
+        m.contains('socket')) {
+      return 'Sin conexión a internet. Verifica tu red e intenta de nuevo.';
+    }
+    if (m.contains('too many requests') || m.contains('rate limit')) {
+      return 'Demasiados intentos. Espera un momento e intenta de nuevo.';
+    }
+    if (m.contains('user not found') || m.contains('no user')) {
+      return 'No existe una cuenta con ese email.';
+    }
+    // Fallback: mostrar el mensaje original traducido lo mejor posible
+    return 'Error: $mensaje';
   }
 }
