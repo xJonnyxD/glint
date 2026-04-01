@@ -6,6 +6,7 @@ import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_screen.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart' show AuthInitial, AuthLoading, AuthAuthenticated;
 import 'package:glint/features/onboarding/onboarding_screen.dart';
+import 'package:glint/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:glint/features/routines/presentation/routines_screen.dart';
 import 'package:glint/features/habits/presentation/habits_screen.dart';
 import 'package:glint/features/finance/presentation/finance_screen.dart';
@@ -40,6 +41,10 @@ final GoRouter appRouter = GoRouter(
     ShellRoute(
       builder: (context, state, child) => HomeShell(child: child),
       routes: [
+        GoRoute(
+          path: AppRoutes.dashboard,
+          builder: (context, state) => const DashboardScreen(),
+        ),
         GoRoute(
           path: AppRoutes.routines,
           builder: (context, state) => const RoutinesScreen(),
@@ -117,8 +122,8 @@ final GoRouter appRouter = GoRouter(
     // Si no está autenticado y no está en auth ni en splash → ir a login
     if (!autenticado && !enAuth && !enSplash) return AppRoutes.auth;
 
-    // Si está autenticado y está en auth → ir a home
-    if (autenticado && enAuth) return AppRoutes.routines;
+    // Si está autenticado y está en auth → ir a dashboard
+    if (autenticado && enAuth) return AppRoutes.dashboard;
 
     return null;
   },
@@ -146,6 +151,11 @@ class HomeShell extends StatelessWidget {
         selectedIndex: _selectedIndex(location),
         onDestinationSelected: (index) => _onTap(context, index),
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
           NavigationDestination(
             icon: Icon(Icons.wb_sunny_outlined),
             selectedIcon: Icon(Icons.wb_sunny),
@@ -182,22 +192,24 @@ class HomeShell extends StatelessWidget {
   }
 
   int _selectedIndex(String location) {
-    if (location.startsWith(AppRoutes.routines)) return 0;
-    if (location.startsWith(AppRoutes.habits))   return 1;
-    if (location.startsWith(AppRoutes.finance))  return 2;
-    if (location.startsWith(AppRoutes.agenda))   return 3;
-    if (location.startsWith(AppRoutes.notes))    return 4;
-    return 5;
+    if (location.startsWith(AppRoutes.dashboard)) return 0;
+    if (location.startsWith(AppRoutes.routines))  return 1;
+    if (location.startsWith(AppRoutes.habits))    return 2;
+    if (location.startsWith(AppRoutes.finance))   return 3;
+    if (location.startsWith(AppRoutes.agenda))    return 4;
+    if (location.startsWith(AppRoutes.notes))     return 5;
+    return 6;
   }
 
   void _onTap(BuildContext context, int index) {
     switch (index) {
-      case 0: context.go(AppRoutes.routines); break;
-      case 1: context.go(AppRoutes.habits);   break;
-      case 2: context.go(AppRoutes.finance);  break;
-      case 3: context.go(AppRoutes.agenda);   break;
-      case 4: context.go(AppRoutes.notes);    break;
-      case 5: context.go(AppRoutes.profile);  break;
+      case 0: context.go(AppRoutes.dashboard); break;
+      case 1: context.go(AppRoutes.routines);  break;
+      case 2: context.go(AppRoutes.habits);    break;
+      case 3: context.go(AppRoutes.finance);   break;
+      case 4: context.go(AppRoutes.agenda);    break;
+      case 5: context.go(AppRoutes.notes);     break;
+      case 6: context.go(AppRoutes.profile);   break;
     }
   }
 }
@@ -259,7 +271,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
-      context.go(AppRoutes.routines);
+      context.go(AppRoutes.dashboard);
     } else {
       context.go(AppRoutes.auth);
     }
@@ -285,23 +297,24 @@ class _SplashScreenState extends State<SplashScreen>
             ScaleTransition(
               scale: _escala,
               child: Container(
-                width: 110,
-                height: 110,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white,
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(60),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
+                      color: Colors.black.withAlpha(80),
+                      blurRadius: 32,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: 56,
-                  color: colorScheme.primary,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    'assets/icons/icon.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),

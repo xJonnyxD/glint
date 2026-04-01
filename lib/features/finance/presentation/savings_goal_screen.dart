@@ -447,7 +447,7 @@ class _NuevaMetaSheetState extends State<_NuevaMetaSheet> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _emojisDisponibles.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (context, index) => const SizedBox(width: 8),
                   itemBuilder: (context, i) {
                     final emoji = _emojisDisponibles[i];
                     final seleccionado = emoji == _emojiSeleccionado;

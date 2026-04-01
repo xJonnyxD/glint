@@ -553,7 +553,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<int>(
-                      value: _diaDelMes,
+                      initialValue: _diaDelMes,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12)),
