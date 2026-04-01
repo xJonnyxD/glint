@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'features/auth/presentation/auth_cubit.dart';
 import 'features/auth/presentation/auth_state.dart';
 import 'features/routines/data/routine_repository.dart';
@@ -19,6 +20,14 @@ import 'features/habits/data/habit_repository.dart';
 import 'features/habits/presentation/habit_cubit.dart';
 import 'features/notes/data/note_repository.dart';
 import 'features/notes/presentation/note_cubit.dart';
+import 'features/finance/data/budget_repository.dart';
+import 'features/finance/presentation/budget_cubit.dart';
+import 'features/finance/data/savings_goal_repository.dart';
+import 'features/finance/presentation/savings_goal_cubit.dart';
+import 'features/finance/data/debt_repository.dart';
+import 'features/finance/presentation/debt_cubit.dart';
+import 'features/finance/data/recurring_expense_repository.dart';
+import 'features/finance/presentation/recurring_expense_cubit.dart';
 import 'shared/database/app_database.dart';
 import 'shared/di/app_router.dart';
 import 'shared/di/injection_container.dart';
@@ -76,13 +85,17 @@ class GlintApp extends StatelessWidget {
         BlocProvider<AuthCubit>(
           create: (_) => AuthCubit(Supabase.instance.client),
         ),
+        BlocProvider<ThemeCubit>(
+          create: (_) => ThemeCubit(),
+        ),
       ],
-      child: MaterialApp.router(
+      child: BlocBuilder<ThemeCubit, ThemeSettings>(
+        builder: (context, themeState) => MaterialApp.router(
         title: AppConstants.appName,
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
+        theme: AppTheme.buildLight(themeState.color),
+        darkTheme: AppTheme.buildDark(themeState.color),
+        themeMode: themeState.modo,
         routerConfig: appRouter,
         locale: const Locale('es', 'SV'),
         // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
@@ -122,6 +135,30 @@ class GlintApp extends StatelessWidget {
                         authState.user.id,
                       ),
                     ),
+                    BlocProvider<BudgetCubit>(
+                      create: (_) => BudgetCubit(
+                        BudgetRepository(appDatabase),
+                        authState.user.id,
+                      ),
+                    ),
+                    BlocProvider<SavingsGoalCubit>(
+                      create: (_) => SavingsGoalCubit(
+                        SavingsGoalRepository(appDatabase),
+                        authState.user.id,
+                      ),
+                    ),
+                    BlocProvider<DebtCubit>(
+                      create: (_) => DebtCubit(
+                        DebtRepository(appDatabase),
+                        authState.user.id,
+                      ),
+                    ),
+                    BlocProvider<RecurringExpenseCubit>(
+                      create: (_) => RecurringExpenseCubit(
+                        RecurringExpenseRepository(appDatabase),
+                        authState.user.id,
+                      ),
+                    ),
                   ],
                   child: child!,
                 );
@@ -130,6 +167,7 @@ class GlintApp extends StatelessWidget {
             },
           );
         },
+        ),
       ),
     );
   }

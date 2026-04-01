@@ -400,7 +400,7 @@ class _NoteCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: cardColor.withOpacity(0.4),
+                color: cardColor.withValues(alpha: 0.4),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -452,7 +452,7 @@ class _NoteCard extends StatelessWidget {
                           nota.categoria.nombre,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -946,7 +946,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
                 'Agregar elemento',
                 style: TextStyle(
                   fontSize: 15,
-                  color: Colors.black.withOpacity(0.45),
+                  color: Colors.black.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -967,7 +967,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             letterSpacing: 1,
           ),
         ),
@@ -986,7 +986,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
                 decoration: BoxDecoration(
                   color: selected
                       ? Colors.black87
-                      : Colors.black.withOpacity(0.07),
+                      : Colors.black.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -1024,7 +1024,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             letterSpacing: 1,
           ),
         ),
@@ -1034,7 +1034,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: coloresNota.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (_, i) {
               final c = coloresNota[i];
               final hex = c['hex']!;
@@ -1055,7 +1055,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
                     boxShadow: selected
                         ? [
                             BoxShadow(
-                              color: widget.hexToColor(hex).withOpacity(0.5),
+                              color: widget.hexToColor(hex).withValues(alpha: 0.5),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             )

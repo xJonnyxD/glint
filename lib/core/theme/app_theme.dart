@@ -2,73 +2,82 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
-/// Configuración de temas de Glint (Material 3)
+/// Configuración de temas de Glint (Material 3).
+///
+/// - Usa [buildLight] / [buildDark] para temas dinámicos con color semilla
+///   personalizado (p.ej. el acento elegido por el usuario en [ThemeCubit]).
+/// - Los getters [light] / [dark] mantienen compatibilidad con el código
+///   existente usando el morado predeterminado de Material 3.
 abstract class AppTheme {
-  // ── Tema Claro ─────────────────────────────────────────────────────────────
-  static ThemeData get light {
-    final colorScheme = ColorScheme(
+  // ── Color semilla por defecto (morado M3) ─────────────────────────────────
+  static const Color _defaultSeed = Color(0xFF6750A4);
+
+  // ── API de compatibilidad ─────────────────────────────────────────────────
+  static ThemeData get light => buildLight(_defaultSeed);
+  static ThemeData get dark  => buildDark(_defaultSeed);
+
+  // ── Constructores dinámicos ───────────────────────────────────────────────
+
+  /// Tema claro generado a partir de [seedColor].
+  static ThemeData buildLight(Color seedColor) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor:  seedColor,
       brightness: Brightness.light,
-      primary:          AppColors.lightBrand,
-      onPrimary:        Colors.white,
-      primaryContainer: AppColors.lightBrand.withAlpha(26),
-      onPrimaryContainer: AppColors.lightBrand,
-      secondary:        AppColors.lightAccent,
-      onSecondary:      Colors.white,
-      secondaryContainer: AppColors.lightAccent.withAlpha(26),
-      onSecondaryContainer: AppColors.lightAccent,
-      tertiary:         AppColors.lightCta,
-      onTertiary:       Colors.white,
-      error:            AppColors.lightError,
-      onError:          Colors.white,
-      surface:          AppColors.lightSurface,
-      onSurface:        AppColors.lightText,
-      surfaceContainerHighest: AppColors.lightBackground,
-      outline:          AppColors.lightDivider,
+      // Ancla colores de superficie/fondo a los valores originales de Glint
+      // para que el cambio de acento no altere el look general de la app.
+      surface:    AppColors.lightSurface,
+    ).copyWith(
+      surface:                    AppColors.lightSurface,
+      onSurface:                  AppColors.lightText,
+      surfaceContainerHighest:    AppColors.lightBackground,
+      outline:                    AppColors.lightDivider,
+      error:                      AppColors.lightError,
+      onError:                    Colors.white,
     );
 
     return ThemeData(
-      useMaterial3: true,
-      colorScheme: colorScheme,
+      useMaterial3:            true,
+      colorScheme:             colorScheme,
       scaffoldBackgroundColor: AppColors.lightBackground,
       textTheme: _buildTextTheme(AppColors.lightText, AppColors.lightTextMuted),
       appBarTheme: _buildAppBarTheme(
-        backgroundColor: AppColors.lightBackground,
-        foregroundColor: AppColors.lightText,
+        backgroundColor:  AppColors.lightBackground,
+        foregroundColor:  AppColors.lightText,
         surfaceTintColor: Colors.transparent,
       ),
-      cardTheme: _buildCardTheme(AppColors.lightSurface),
-      elevatedButtonTheme: _buildElevatedButtonTheme(colorScheme),
-      outlinedButtonTheme: _buildOutlinedButtonTheme(colorScheme),
-      textButtonTheme: _buildTextButtonTheme(colorScheme),
-      inputDecorationTheme: _buildInputDecorationTheme(colorScheme),
+      cardTheme:             _buildCardTheme(AppColors.lightSurface),
+      elevatedButtonTheme:   _buildElevatedButtonTheme(colorScheme),
+      outlinedButtonTheme:   _buildOutlinedButtonTheme(colorScheme),
+      textButtonTheme:       _buildTextButtonTheme(colorScheme),
+      inputDecorationTheme:  _buildInputDecorationTheme(colorScheme),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.lightSurface,
-        selectedItemColor: AppColors.lightBrand,
+        backgroundColor:     AppColors.lightSurface,
+        selectedItemColor:   colorScheme.primary,
         unselectedItemColor: AppColors.lightTextMuted,
-        type: BottomNavigationBarType.fixed,
+        type:      BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
-        indicatorColor: AppColors.lightBrand.withAlpha(26),
+        indicatorColor:  colorScheme.primary.withAlpha(26),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: AppColors.lightBrand);
+            return IconThemeData(color: colorScheme.primary);
           }
           return IconThemeData(color: AppColors.lightTextMuted);
         }),
       ),
       dividerTheme: DividerThemeData(
-        color: AppColors.lightDivider,
+        color:     AppColors.lightDivider,
         thickness: 1,
-        space: 1,
+        space:     1,
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.lightSurface,
         labelStyle: AppTextStyles.labelMedium.copyWith(
           color: AppColors.lightText,
         ),
-        side: BorderSide(color: AppColors.lightDivider),
+        side:  BorderSide(color: AppColors.lightDivider),
         shape: const StadiumBorder(),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -82,71 +91,64 @@ abstract class AppTheme {
     );
   }
 
-  // ── Tema Oscuro ────────────────────────────────────────────────────────────
-  static ThemeData get dark {
-    final colorScheme = ColorScheme(
+  /// Tema oscuro generado a partir de [seedColor].
+  static ThemeData buildDark(Color seedColor) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor:  seedColor,
       brightness: Brightness.dark,
-      primary:          AppColors.darkBrand,
-      onPrimary:        AppColors.darkBackground,
-      primaryContainer: AppColors.darkBrand.withAlpha(38),
-      onPrimaryContainer: AppColors.darkBrand,
-      secondary:        AppColors.darkAccent,
-      onSecondary:      AppColors.darkBackground,
-      secondaryContainer: AppColors.darkAccent.withAlpha(38),
-      onSecondaryContainer: AppColors.darkAccent,
-      tertiary:         AppColors.darkCta,
-      onTertiary:       AppColors.darkBackground,
-      error:            AppColors.darkError,
-      onError:          AppColors.darkBackground,
-      surface:          AppColors.darkSurface,
-      onSurface:        AppColors.darkText,
+      surface:    AppColors.darkSurface,
+    ).copyWith(
+      surface:                 AppColors.darkSurface,
+      onSurface:               AppColors.darkText,
       surfaceContainerHighest: AppColors.darkBackground,
-      outline:          AppColors.darkDivider,
+      outline:                 AppColors.darkDivider,
+      error:                   AppColors.darkError,
+      onError:                 AppColors.darkBackground,
     );
 
     return ThemeData(
-      useMaterial3: true,
-      colorScheme: colorScheme,
+      useMaterial3:            true,
+      colorScheme:             colorScheme,
       scaffoldBackgroundColor: AppColors.darkBackground,
       textTheme: _buildTextTheme(AppColors.darkText, AppColors.darkTextMuted),
       appBarTheme: _buildAppBarTheme(
-        backgroundColor: AppColors.darkBackground,
-        foregroundColor: AppColors.darkText,
+        backgroundColor:  AppColors.darkBackground,
+        foregroundColor:  AppColors.darkText,
         surfaceTintColor: Colors.transparent,
       ),
-      cardTheme: _buildCardTheme(AppColors.darkSurface),
-      elevatedButtonTheme: _buildElevatedButtonTheme(colorScheme),
-      outlinedButtonTheme: _buildOutlinedButtonTheme(colorScheme),
-      textButtonTheme: _buildTextButtonTheme(colorScheme),
+      cardTheme:            _buildCardTheme(AppColors.darkSurface),
+      elevatedButtonTheme:  _buildElevatedButtonTheme(colorScheme),
+      outlinedButtonTheme:  _buildOutlinedButtonTheme(colorScheme),
+      textButtonTheme:      _buildTextButtonTheme(colorScheme),
       inputDecorationTheme: _buildInputDecorationTheme(colorScheme),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.darkSurface,
-        selectedItemColor: AppColors.darkBrand,
+        backgroundColor:     AppColors.darkSurface,
+        selectedItemColor:   colorScheme.primary,
         unselectedItemColor: AppColors.darkTextMuted,
-        type: BottomNavigationBarType.fixed,
+        type:      BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,
-        indicatorColor: AppColors.darkBrand.withAlpha(51),
+        indicatorColor:  colorScheme.primary.withAlpha(51),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: AppColors.darkBrand);
+            return IconThemeData(color: colorScheme.primary);
           }
           return IconThemeData(color: AppColors.darkTextMuted);
         }),
       ),
       dividerTheme: DividerThemeData(
-        color: AppColors.darkDivider,
+        color:     AppColors.darkDivider,
         thickness: 1,
-        space: 1,
+        space:     1,
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkSurface,
         labelStyle: AppTextStyles.labelMedium.copyWith(
           color: AppColors.darkText,
         ),
-        side: BorderSide(color: AppColors.darkDivider),
+        side:  BorderSide(color: AppColors.darkDivider),
         shape: const StadiumBorder(),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -200,7 +202,7 @@ abstract class AppTheme {
 
   static CardThemeData _buildCardTheme(Color surfaceColor) {
     return CardThemeData(
-      color: surfaceColor,
+      color:     surfaceColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -253,8 +255,8 @@ abstract class AppTheme {
     ColorScheme colorScheme,
   ) {
     return InputDecorationTheme(
-      filled: true,
-      fillColor: colorScheme.surface,
+      filled:     true,
+      fillColor:  colorScheme.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -63,6 +63,11 @@ class FinanceScreen extends StatelessWidget {
           ],
         ),
 
+        // Acceso rápido a herramientas financieras
+        SliverToBoxAdapter(
+          child: _HerramientasFinanzas(),
+        ),
+
         if (state.transacciones.isEmpty)
           SliverFillRemaining(child: _buildEstadoVacio(context))
         else ...[
@@ -1180,6 +1185,115 @@ class _SegmentBtn extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Acceso rápido a herramientas financieras ──────────────────────────────────
+
+class _HerramientasFinanzas extends StatelessWidget {
+  const _HerramientasFinanzas();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Herramientas',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _HerramientaCard(
+                  icon: Icons.pie_chart_outline,
+                  label: 'Presupuesto',
+                  color: const Color(0xFF1565C0),
+                  onTap: () => context.push(AppRoutes.financeBudget),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HerramientaCard(
+                  icon: Icons.savings_outlined,
+                  label: 'Mis Metas',
+                  color: const Color(0xFF2E7D32),
+                  onTap: () => context.push(AppRoutes.financeSavingsGoals),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HerramientaCard(
+                  icon: Icons.swap_horiz_outlined,
+                  label: 'Deudas',
+                  color: const Color(0xFFAD1457),
+                  onTap: () => context.push(AppRoutes.financeDebts),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HerramientaCard(
+                  icon: Icons.repeat_outlined,
+                  label: 'Recurrentes',
+                  color: const Color(0xFFE65100),
+                  onTap: () => context.push(AppRoutes.financeRecurring),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HerramientaCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _HerramientaCard({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withAlpha(20),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withAlpha(60)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 26),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
+          ],
         ),
       ),
     );

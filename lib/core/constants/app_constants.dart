@@ -77,5 +77,9 @@ abstract class AppRoutes {
   static const String settings         = '/settings';
   static const String backup           = '/settings/backup';
   static const String gamification     = '/home/gamification';
-  static const String salaryCalculator = '/salary-calculator';
+  static const String salaryCalculator    = '/salary-calculator';
+  static const String financeBudget       = '/home/finance/budget';
+  static const String financeSavingsGoals = '/home/finance/savings-goals';
+  static const String financeDebts        = '/home/finance/debts';
+  static const String financeRecurring    = '/home/finance/recurring';
 }

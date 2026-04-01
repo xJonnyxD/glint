@@ -10,6 +10,10 @@ import 'package:glint/features/routines/presentation/routines_screen.dart';
 import 'package:glint/features/habits/presentation/habits_screen.dart';
 import 'package:glint/features/finance/presentation/finance_screen.dart';
 import 'package:glint/features/finance/presentation/salary_calculator_screen.dart';
+import 'package:glint/features/finance/presentation/budget_screen.dart';
+import 'package:glint/features/finance/presentation/savings_goal_screen.dart';
+import 'package:glint/features/finance/presentation/debt_screen.dart';
+import 'package:glint/features/finance/presentation/recurring_expense_screen.dart';
 import 'package:glint/features/agenda/presentation/agenda_screen.dart';
 import 'package:glint/features/notes/presentation/notes_screen.dart';
 import 'package:glint/features/profile/presentation/profile_screen.dart';
@@ -59,6 +63,22 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: AppRoutes.profile,
           builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financeBudget,
+          builder: (context, state) => const BudgetScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financeSavingsGoals,
+          builder: (context, state) => const SavingsGoalScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financeDebts,
+          builder: (context, state) => const DebtScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financeRecurring,
+          builder: (context, state) => const RecurringExpenseScreen(),
         ),
       ],
     ),
