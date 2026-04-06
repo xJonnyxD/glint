@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:glint/core/theme/theme_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart';
 import 'package:glint/features/profile/data/profile_settings.dart';
+import 'package:glint/shared/services/biometric_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -123,11 +125,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authState   = context.watch<AuthCubit>().state;
     final themeState  = context.watch<ThemeCubit>().state;
 
-    final email  = authState is AuthAuthenticated ? authState.user.email ?? '' : '';
-    final nombre = authState is AuthAuthenticated
-        ? (authState.user.userMetadata?['nombre'] as String? ?? 'Usuario')
-        : 'Usuario';
-    final iniciales = nombre.trim().split(' ').map((p) => p[0]).take(2).join().toUpperCase();
+    final email     = authState is AuthAuthenticated ? authState.user.email ?? '' : '';
+    final meta      = authState is AuthAuthenticated ? (authState.user.userMetadata ?? {}) : <String, dynamic>{};
+    final nombres   = meta['nombres']   as String? ?? '';
+    final apellidos = meta['apellidos'] as String? ?? '';
+    final telefono  = meta['telefono']  as String? ?? '';
+    final fechaNac  = meta['fecha_nacimiento'] as String? ?? '';
+    final nombre = meta['nombre'] as String?
+        ?? (nombres.isNotEmpty ? '$nombres $apellidos'.trim() : 'Usuario');
+    final iniciales = nombre.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join().toUpperCase();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -174,14 +180,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _SectionHeader(title: 'Cuenta'),
                     _ProfileTile(
                       icon: Icons.person_outline,
-                      title: 'Nombre',
-                      subtitle: nombre,
+                      title: 'Nombres',
+                      subtitle: nombres.isNotEmpty ? nombres : nombre,
+                      onTap: () => _editarCampo(
+                        context,
+                        campo: 'nombres',
+                        titulo: 'Editar nombres',
+                        valorActual: nombres.isNotEmpty ? nombres : nombre,
+                        metaKey: 'nombres',
+                      ),
                     ),
+                    if (apellidos.isNotEmpty)
+                      _ProfileTile(
+                        icon: Icons.badge_outlined,
+                        title: 'Apellidos',
+                        subtitle: apellidos,
+                        onTap: () => _editarCampo(
+                          context,
+                          campo: 'apellidos',
+                          titulo: 'Editar apellidos',
+                          valorActual: apellidos,
+                          metaKey: 'apellidos',
+                        ),
+                      ),
                     _ProfileTile(
                       icon: Icons.email_outlined,
                       title: 'Email',
                       subtitle: email,
                     ),
+                    if (telefono.isNotEmpty)
+                      _ProfileTile(
+                        icon: Icons.phone_outlined,
+                        title: 'Teléfono',
+                        subtitle: '+503 $telefono',
+                        onTap: () => _editarCampo(
+                          context,
+                          campo: 'telefono',
+                          titulo: 'Editar teléfono',
+                          valorActual: telefono,
+                          metaKey: 'telefono',
+                          teclado: TextInputType.phone,
+                        ),
+                      ),
+                    if (fechaNac.isNotEmpty)
+                      _ProfileTile(
+                        icon: Icons.cake_outlined,
+                        title: 'Fecha de nacimiento',
+                        subtitle: fechaNac,
+                      ),
+                    const SizedBox(height: 24),
+
+                    // ── SECCIÓN: SEGURIDAD ────────────────────────────────
+                    _SectionHeader(title: 'Seguridad'),
+                    _BiometricTile(),
                     const SizedBox(height: 24),
 
                     // ── SECCIÓN: APP ───────────────────────────────────────
@@ -221,6 +272,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
     );
+  }
+
+  /// Abre un diálogo para editar un campo del perfil y lo actualiza en Supabase
+  Future<void> _editarCampo(
+    BuildContext context, {
+    required String campo,
+    required String titulo,
+    required String valorActual,
+    required String metaKey,
+    TextInputType teclado = TextInputType.text,
+  }) async {
+    // Capturar referencias al contexto ANTES del primer await
+    final authCubit    = context.read<AuthCubit>();
+    final messenger    = ScaffoldMessenger.of(context);
+    final colorError   = Theme.of(context).colorScheme.error;
+
+    final ctrl = TextEditingController(text: valorActual);
+    final nuevo = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(titulo),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: teclado,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            hintText: 'Nuevo $campo',
+            border: const OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (nuevo == null || nuevo.isEmpty || nuevo == valorActual) return;
+    if (!mounted) return;
+
+    try {
+      // Actualizar metadatos en Supabase
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(data: {metaKey: nuevo}),
+      );
+      // Refrescar el estado del cubit
+      await authCubit.refreshUser();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('✅ Perfil actualizado'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('❌ Error al actualizar. Intenta de nuevo.'),
+          backgroundColor: colorError,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _confirmarCerrarSesion(BuildContext context) {
@@ -542,11 +662,13 @@ class _ProfileTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   const _ProfileTile({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   @override
@@ -555,10 +677,100 @@ class _ProfileTile extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Card(
         child: ListTile(
-          leading:
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
+          leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
           title: Text(title),
           subtitle: Text(subtitle),
+          trailing: onTap != null
+              ? Icon(Icons.edit_outlined,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)
+              : null,
+          onTap: onTap,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Tile de biometría ─────────────────────────────────────────────────────────
+
+class _BiometricTile extends StatefulWidget {
+  @override
+  State<_BiometricTile> createState() => _BiometricTileState();
+}
+
+class _BiometricTileState extends State<_BiometricTile> {
+  bool _disponible = false;
+  bool _habilitado = false;
+  bool _cargando   = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarEstado();
+  }
+
+  Future<void> _cargarEstado() async {
+    final disponible = await BiometricService.isAvailable();
+    final habilitado = await BiometricService.isEnabled();
+    if (mounted) {
+      setState(() {
+        _disponible = disponible;
+        _habilitado = habilitado;
+        _cargando   = false;
+      });
+    }
+  }
+
+  Future<void> _toggleBiometrico(bool nuevoValor) async {
+    if (nuevoValor) {
+      // Al activar, pedir autenticación biométrica primero
+      final autenticado = await BiometricService.authenticate();
+      if (!autenticado) return;
+    }
+    await BiometricService.setEnabled(nuevoValor);
+    if (mounted) setState(() => _habilitado = nuevoValor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_cargando) {
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: Card(
+          child: ListTile(
+            leading: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('Biometría'),
+            subtitle: Text('Verificando disponibilidad...'),
+          ),
+        ),
+      );
+    }
+
+    if (!_disponible) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Card(
+        child: SwitchListTile(
+          secondary: Icon(
+            Icons.fingerprint,
+            color: _habilitado ? colorScheme.primary : colorScheme.onSurface.withAlpha(150),
+          ),
+          title: const Text('Desbloqueo biométrico'),
+          subtitle: Text(
+            _habilitado
+                ? 'Activo — usa huella o Face ID para entrar'
+                : 'Inactivo — usa contraseña al abrir la app',
+          ),
+          value: _habilitado,
+          onChanged: _toggleBiometrico,
         ),
       ),
     );

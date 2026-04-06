@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_screen.dart';
-import 'package:glint/features/auth/presentation/auth_state.dart' show AuthInitial, AuthLoading, AuthAuthenticated;
+import 'package:glint/features/auth/presentation/auth_state.dart' show GlintAuthState, AuthInitial, AuthLoading, AuthAuthenticated, AuthUnauthenticated;
 import 'package:glint/features/onboarding/onboarding_screen.dart';
+import 'package:glint/shared/services/biometric_service.dart';
 import 'package:glint/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:glint/features/routines/presentation/routines_screen.dart';
 import 'package:glint/features/habits/presentation/habits_screen.dart';
@@ -18,7 +20,7 @@ import 'package:glint/features/finance/presentation/recurring_expense_screen.dar
 import 'package:glint/features/agenda/presentation/agenda_screen.dart';
 import 'package:glint/features/notes/presentation/notes_screen.dart';
 import 'package:glint/features/profile/presentation/profile_screen.dart';
-import 'package:glint/shared/widgets/placeholder_screen.dart';
+import 'package:glint/features/settings/presentation/settings_screen.dart';
 
 /// Router principal de Glint usando GoRouter
 final GoRouter appRouter = GoRouter(
@@ -69,23 +71,25 @@ final GoRouter appRouter = GoRouter(
           path: AppRoutes.profile,
           builder: (context, state) => const ProfileScreen(),
         ),
-        GoRoute(
-          path: AppRoutes.financeBudget,
-          builder: (context, state) => const BudgetScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.financeSavingsGoals,
-          builder: (context, state) => const SavingsGoalScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.financeDebts,
-          builder: (context, state) => const DebtScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.financeRecurring,
-          builder: (context, state) => const RecurringExpenseScreen(),
-        ),
       ],
+    ),
+
+    // ── Sub-pantallas de Finanzas (fuera del Shell para tener back nativo) ────
+    GoRoute(
+      path: AppRoutes.financeBudget,
+      builder: (context, state) => const BudgetScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.financeSavingsGoals,
+      builder: (context, state) => const SavingsGoalScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.financeDebts,
+      builder: (context, state) => const DebtScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.financeRecurring,
+      builder: (context, state) => const RecurringExpenseScreen(),
     ),
 
     // ── Onboarding ────────────────────────────────────────────────────────────
@@ -103,8 +107,7 @@ final GoRouter appRouter = GoRouter(
     // ── Configuración ─────────────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.settings,
-      builder: (context, state) =>
-          const PlaceholderScreen(title: 'Configuración'),
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 
@@ -136,57 +139,112 @@ final GoRouter appRouter = GoRouter(
 );
 
 /// Scaffold con NavigationBar (bottom nav) para la sección principal
-class HomeShell extends StatelessWidget {
+class HomeShell extends StatefulWidget {
   final Widget child;
 
   const HomeShell({super.key, required this.child});
 
   @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  /// Historial de tabs visitados para navegación hacia atrás entre pestañas
+  final List<int> _tabHistory = [0];
+  /// Registra la última vez que el usuario presionó atrás (para doble-tap salir)
+  DateTime? _ultimoBack;
+
+  @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex(location),
-        onDestinationSelected: (index) => _onTap(context, index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Inicio',
+    return BlocListener<AuthCubit, GlintAuthState>(
+      // Cuando el usuario cierra sesión, redirigir automáticamente al login
+      listener: (context, authState) {
+        if (authState is AuthUnauthenticated) {
+          context.go(AppRoutes.auth);
+        }
+      },
+      child: PopScope(
+        // canPop: false → nosotros manejamos el atrás manualmente
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+
+          // 1️⃣ Si hay un modal/diálogo encima, cerrarlo primero
+          final nav = Navigator.of(context);
+          if (nav.canPop()) {
+            nav.pop();
+            return;
+          }
+
+          // 2️⃣ Si hay historial de tabs, volver al tab anterior
+          if (_tabHistory.length > 1) {
+            setState(() => _tabHistory.removeLast());
+            _navigateTo(context, _tabHistory.last);
+            return;
+          }
+
+          // 3️⃣ Sin historial: doble-tap para salir de la app
+          final ahora = DateTime.now();
+          if (_ultimoBack != null &&
+              ahora.difference(_ultimoBack!) < const Duration(seconds: 2)) {
+            SystemNavigator.pop();
+          } else {
+            _ultimoBack = ahora;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Presiona atrás de nuevo para salir de Glint'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          body: widget.child,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _selectedIndex(location),
+            onDestinationSelected: (index) => _onTap(context, index),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Inicio',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.wb_sunny_outlined),
+                selectedIcon: Icon(Icons.wb_sunny),
+                label: 'Rutinas',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.favorite_outline),
+                selectedIcon: Icon(Icons.favorite),
+                label: 'Hábitos',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: 'Dinero',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.calendar_today_outlined),
+                selectedIcon: Icon(Icons.calendar_today),
+                label: 'Agenda',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.sticky_note_2_outlined),
+                selectedIcon: Icon(Icons.sticky_note_2),
+                label: 'Notas',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline),
+                selectedIcon: Icon(Icons.person),
+                label: 'Perfil',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.wb_sunny_outlined),
-            selectedIcon: Icon(Icons.wb_sunny),
-            label: 'Rutinas',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_outline),
-            selectedIcon: Icon(Icons.favorite),
-            label: 'Hábitos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'Finanzas',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today),
-            label: 'Agenda',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.sticky_note_2_outlined),
-            selectedIcon: Icon(Icons.sticky_note_2),
-            label: 'Notas',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -202,6 +260,23 @@ class HomeShell extends StatelessWidget {
   }
 
   void _onTap(BuildContext context, int index) {
+    final currentIndex = _selectedIndex(
+      GoRouterState.of(context).matchedLocation,
+    );
+    // Solo agregar al historial si cambiamos de tab
+    if (index != currentIndex) {
+      setState(() {
+        // Evitar duplicados consecutivos en historial
+        if (_tabHistory.isEmpty || _tabHistory.last != index) {
+          _tabHistory.add(index);
+        }
+      });
+    }
+    _navigateTo(context, index);
+  }
+
+  /// Navega al tab por índice sin agregar al historial
+  void _navigateTo(BuildContext context, int index) {
     switch (index) {
       case 0: context.go(AppRoutes.dashboard); break;
       case 1: context.go(AppRoutes.routines);  break;
@@ -271,7 +346,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
-      context.go(AppRoutes.dashboard);
+      final bioEnabled = await BiometricService.isEnabled();
+      final bioAvailable = await BiometricService.isAvailable();
+      if (!mounted) return;
+      if (bioEnabled && bioAvailable) {
+        final autenticado = await BiometricService.authenticate();
+        if (!mounted) return;
+        if (autenticado) {
+          context.go(AppRoutes.dashboard);
+        } else {
+          context.go(AppRoutes.auth);
+        }
+      } else {
+        context.go(AppRoutes.dashboard);
+      }
     } else {
       context.go(AppRoutes.auth);
     }

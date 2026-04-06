@@ -703,7 +703,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
     );
   }
 
-  void _guardar(BuildContext context) {
+  Future<void> _guardar(BuildContext context) async {
     final titulo = _tituloCtrl.text.trim();
     final contenido = _contenidoCtrl.text.trim();
     final items = _esChecklist ? _buildItems() : <ChecklistItem>[];
@@ -715,28 +715,40 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
 
     final cubit = context.read<NoteCubit>();
 
-    if (widget.nota == null) {
-      cubit.crearNota(
-        titulo: titulo,
-        contenido: contenido,
-        categoria: _categoria,
-        color: _color,
-        esChecklist: _esChecklist,
-        items: items,
-      );
-    } else {
-      cubit.actualizarNota(widget.nota!.copyWith(
-        titulo: titulo,
-        contenido: contenido,
-        categoria: _categoria,
-        color: _color,
-        esFijada: _esFijada,
-        esChecklist: _esChecklist,
-        items: items,
-      ));
+    try {
+      if (widget.nota == null) {
+        await cubit.crearNota(
+          titulo: titulo,
+          contenido: contenido,
+          categoria: _categoria,
+          color: _color,
+          esChecklist: _esChecklist,
+          items: items,
+        );
+      } else {
+        await cubit.actualizarNota(widget.nota!.copyWith(
+          titulo: titulo,
+          contenido: contenido,
+          categoria: _categoria,
+          color: _color,
+          esFijada: _esFijada,
+          esChecklist: _esChecklist,
+          items: items,
+        ));
+      }
+      if (context.mounted) Navigator.pop(context);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString().length > 120 ? e.toString().substring(0, 120) : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
     }
-
-    Navigator.pop(context);
   }
 
   @override

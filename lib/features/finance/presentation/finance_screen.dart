@@ -1010,7 +1010,7 @@ class _AgregarTransaccionSheetState
               const SizedBox(height: 24),
 
               FilledButton(
-                onPressed: _guardar,
+                onPressed: () => _guardar(),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -1026,7 +1026,7 @@ class _AgregarTransaccionSheetState
     );
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
 
     final categoria = _tipo == TipoTransaccion.gasto
@@ -1036,18 +1036,31 @@ class _AgregarTransaccionSheetState
         ? _catGasto.emoji
         : _catIngreso.emoji;
 
-    context.read<FinanceCubit>().agregarTransaccion(
-          tipo:           _tipo,
-          monto:          double.parse(_montoCtrl.text.trim()),
-          descripcion:    _descripcionCtrl.text.trim(),
-          categoria:      categoria,
-          categoriaEmoji: emoji,
-          notas:          _notasCtrl.text.trim().isEmpty
-                              ? null
-                              : _notasCtrl.text.trim(),
-          imagenPath:     _imagenPath,
+    try {
+      await context.read<FinanceCubit>().agregarTransaccion(
+            tipo:           _tipo,
+            monto:          double.parse(_montoCtrl.text.trim()),
+            descripcion:    _descripcionCtrl.text.trim(),
+            categoria:      categoria,
+            categoriaEmoji: emoji,
+            notas:          _notasCtrl.text.trim().isEmpty
+                                ? null
+                                : _notasCtrl.text.trim(),
+            imagenPath:     _imagenPath,
+          );
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString().length > 120 ? e.toString().substring(0, 120) : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+          ),
         );
-    Navigator.pop(context);
+      }
+    }
   }
 }
 

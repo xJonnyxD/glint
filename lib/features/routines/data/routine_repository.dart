@@ -52,6 +52,24 @@ class RoutineRepository {
     );
   }
 
+  /// Edita los datos de una rutina existente
+  Future<void> editarRutina({
+    required String id,
+    required String nombre,
+    required String icono,
+    required PeriodoDelDia periodo,
+    required String hora,
+  }) async {
+    await (_db.update(_db.routines)..where((r) => r.id.equals(id))).write(
+      RoutinesCompanion(
+        nombre:  Value(nombre),
+        icono:   Value(icono),
+        periodo: Value(periodo.index),
+        hora:    Value(hora),
+      ),
+    );
+  }
+
   /// Elimina una rutina
   Future<void> eliminarRutina(String id) async {
     await (_db.delete(_db.routines)..where((r) => r.id.equals(id))).go();

@@ -8,7 +8,9 @@ import 'package:glint/core/constants/app_constants.dart';
 DatabaseConnection connect() {
   return DatabaseConnection.delayed(Future(() async {
     final dir  = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, AppConstants.driftDbName));
-    return DatabaseConnection(NativeDatabase.createInBackground(file));
+    final path = p.join(dir.path, AppConstants.driftDbName);
+    final file = File(path);
+    // NativeDatabase directo (sin background isolate) — más confiable en release
+    return DatabaseConnection(NativeDatabase(file, logStatements: false));
   }));
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:glint/features/routines/domain/routine_entity.dart';
+import 'package:glint/shared/widgets/racha_fuego_badge.dart';
 import 'routine_cubit.dart';
 import 'routine_state.dart';
 
@@ -90,7 +91,10 @@ class RoutinesScreen extends StatelessWidget {
           _buildEncabezadoSeccion(context, PeriodoDelDia.manana),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (ctx, i) => _RutinaCard(rutina: state.manana[i]),
+              (ctx, i) => _RutinaCard(
+                rutina: state.manana[i],
+                onEditar: () => _mostrarAgregarRutina(ctx, rutinaEditar: state.manana[i]),
+              ),
               childCount: state.manana.length,
             ),
           ),
@@ -101,7 +105,10 @@ class RoutinesScreen extends StatelessWidget {
           _buildEncabezadoSeccion(context, PeriodoDelDia.mediodia),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (ctx, i) => _RutinaCard(rutina: state.mediodia[i]),
+              (ctx, i) => _RutinaCard(
+                rutina: state.mediodia[i],
+                onEditar: () => _mostrarAgregarRutina(ctx, rutinaEditar: state.mediodia[i]),
+              ),
               childCount: state.mediodia.length,
             ),
           ),
@@ -112,7 +119,10 @@ class RoutinesScreen extends StatelessWidget {
           _buildEncabezadoSeccion(context, PeriodoDelDia.noche),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (ctx, i) => _RutinaCard(rutina: state.noche[i]),
+              (ctx, i) => _RutinaCard(
+                rutina: state.noche[i],
+                onEditar: () => _mostrarAgregarRutina(ctx, rutinaEditar: state.noche[i]),
+              ),
               childCount: state.noche.length,
             ),
           ),
@@ -144,8 +154,8 @@ class RoutinesScreen extends StatelessWidget {
     );
   }
 
-  /// Bottom sheet para agregar una rutina nueva
-  void _mostrarAgregarRutina(BuildContext context) {
+  /// Bottom sheet para agregar o editar una rutina
+  void _mostrarAgregarRutina(BuildContext context, {RoutineEntity? rutinaEditar}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -155,7 +165,7 @@ class RoutinesScreen extends StatelessWidget {
       ),
       builder: (_) => BlocProvider.value(
         value: context.read<RoutineCubit>(),
-        child: const _AgregarRutinaSheet(),
+        child: _AgregarRutinaSheet(rutinaEditar: rutinaEditar),
       ),
     );
   }
@@ -229,7 +239,8 @@ class _ProgresoDelDia extends StatelessWidget {
 
 class _RutinaCard extends StatelessWidget {
   final RoutineEntity rutina;
-  const _RutinaCard({required this.rutina});
+  final VoidCallback onEditar;
+  const _RutinaCard({required this.rutina, required this.onEditar});
 
   @override
   Widget build(BuildContext context) {
@@ -271,46 +282,64 @@ class _RutinaCard extends StatelessWidget {
                       : null,
                 ),
           ),
-          subtitle: Row(
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.access_time, size: 12,
-                  color: colorScheme.onSurface.withAlpha(128)),
-              const SizedBox(width: 4),
-              Text(
-                rutina.hora,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withAlpha(128),
-                    ),
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 12,
+                      color: colorScheme.onSurface.withAlpha(128)),
+                  const SizedBox(width: 4),
+                  Text(
+                    rutina.hora,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withAlpha(128),
+                        ),
+                  ),
+                ],
               ),
-              if (rutina.rachaActual > 0) ...[
-                const SizedBox(width: 12),
-                Text('🔥 ${rutina.rachaActual}',
-                    style: const TextStyle(fontSize: 12)),
+              if (rutina.rachaActual >= 3) ...[
+                const SizedBox(height: 4),
+                RachaFuegoBadge(racha: rutina.rachaActual),
               ],
             ],
           ),
-          trailing: GestureDetector(
-            onTap: () => context.read<RoutineCubit>().toggleCompletar(rutina),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: rutina.completadaHoy
-                    ? colorScheme.primary
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: rutina.completadaHoy
-                      ? colorScheme.primary
-                      : colorScheme.outline,
-                  width: 2,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Botón editar
+              IconButton(
+                icon: Icon(Icons.edit_outlined,
+                    size: 18, color: colorScheme.onSurface.withAlpha(160)),
+                tooltip: 'Editar rutina',
+                onPressed: onEditar,
+                visualDensity: VisualDensity.compact,
+              ),
+              // Checkbox completar
+              GestureDetector(
+                onTap: () => context.read<RoutineCubit>().toggleCompletar(rutina),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: rutina.completadaHoy
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: rutina.completadaHoy
+                          ? colorScheme.primary
+                          : colorScheme.outline,
+                      width: 2,
+                    ),
+                  ),
+                  child: rutina.completadaHoy
+                      ? Icon(Icons.check, size: 18, color: colorScheme.onPrimary)
+                      : null,
                 ),
               ),
-              child: rutina.completadaHoy
-                  ? Icon(Icons.check, size: 18, color: colorScheme.onPrimary)
-                  : null,
-            ),
+            ],
           ),
           onLongPress: () => _confirmarEliminar(context),
         ),
@@ -343,10 +372,11 @@ class _RutinaCard extends StatelessWidget {
   }
 }
 
-// ── Widget: Bottom sheet para agregar rutina ──────────────────────────────────
+// ── Widget: Bottom sheet para agregar o editar rutina ────────────────────────
 
 class _AgregarRutinaSheet extends StatefulWidget {
-  const _AgregarRutinaSheet();
+  final RoutineEntity? rutinaEditar;
+  const _AgregarRutinaSheet({this.rutinaEditar});
 
   @override
   State<_AgregarRutinaSheet> createState() => _AgregarRutinaSheetState();
@@ -356,9 +386,21 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
   final _nombreCtrl = TextEditingController();
   final _formKey    = GlobalKey<FormState>();
 
-  PeriodoDelDia _periodo = PeriodoDelDia.manana;
-  String        _iconoSeleccionado = 'default';
-  String        _hora = '07:00';
+  late PeriodoDelDia _periodo;
+  late String        _iconoSeleccionado;
+  late String        _hora;
+
+  bool get _esEdicion => widget.rutinaEditar != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final r = widget.rutinaEditar;
+    _periodo          = r?.periodo ?? PeriodoDelDia.manana;
+    _iconoSeleccionado = r?.icono ?? 'default';
+    _hora             = r?.hora ?? '07:00';
+    _nombreCtrl.text  = r?.nombre ?? '';
+  }
 
   @override
   void dispose() {
@@ -392,8 +434,10 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
             ),
             const SizedBox(height: 20),
 
-            Text('Nueva Rutina',
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              _esEdicion ? 'Editar Rutina' : 'Nueva Rutina',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 24),
 
             // Nombre
@@ -423,7 +467,9 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
                     child: GestureDetector(
                       onTap: () => setState(() {
                         _periodo = p;
-                        _hora    = p.horaDefault;
+                        // Solo actualizar hora si no es edición o si el usuario
+                        // cambia manualmente el período
+                        if (!_esEdicion) _hora = p.horaDefault;
                       }),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
@@ -506,8 +552,8 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
 
             // Botón guardar
             FilledButton(
-              onPressed: _guardar,
-              child: const Text('Guardar rutina'),
+              onPressed: () => _guardar(),
+              child: Text(_esEdicion ? 'Actualizar rutina' : 'Guardar rutina'),
             ),
           ],
         ),
@@ -515,14 +561,37 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
     );
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
-    context.read<RoutineCubit>().crearRutina(
-          nombre:  _nombreCtrl.text.trim(),
-          icono:   _iconoSeleccionado,
-          periodo: _periodo,
-          hora:    _hora,
+    try {
+      if (_esEdicion) {
+        await context.read<RoutineCubit>().editarRutina(
+              id:      widget.rutinaEditar!.id,
+              nombre:  _nombreCtrl.text.trim(),
+              icono:   _iconoSeleccionado,
+              periodo: _periodo,
+              hora:    _hora,
+            );
+      } else {
+        await context.read<RoutineCubit>().crearRutina(
+              nombre:  _nombreCtrl.text.trim(),
+              icono:   _iconoSeleccionado,
+              periodo: _periodo,
+              hora:    _hora,
+            );
+      }
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString().length > 120 ? e.toString().substring(0, 120) : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+          ),
         );
-    Navigator.pop(context);
+      }
+    }
   }
 }
