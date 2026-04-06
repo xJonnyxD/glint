@@ -1,3 +1,7 @@
+# Variables de entorno (nunca subir a GitHub)
+env.json
+.env
+
 # Miscellaneous
 *.class
 *.log

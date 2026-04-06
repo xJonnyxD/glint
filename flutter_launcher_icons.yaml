@@ -1,0 +1,15 @@
+flutter_launcher_icons:
+  # Imagen fuente (1024x1024 PNG)
+  image_path: "assets/icons/icon.png"
+
+  # ── Android ──────────────────────────────────────────────────────────────────
+  android: true
+  # Ícono adaptativo para Android 8+ (el sistema redondea las esquinas)
+  adaptive_icon_background: "#6750A4"   # color de fondo morado Glint
+  adaptive_icon_foreground: "assets/icons/icon.png"
+  # Ícono monocromático para Android 13+ (modo oscuro del sistema)
+  adaptive_icon_monochrome: "assets/icons/icon.png"
+
+  # ── iOS ──────────────────────────────────────────────────────────────────────
+  ios: true
+  remove_alpha_ios: true   # iOS no permite canal alfa en el ícono
