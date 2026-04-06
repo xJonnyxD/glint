@@ -1,5 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Servicio de notificaciones locales usando awesome_notifications.
 /// Maneja recordatorios de rutinas, hábitos y eventos de agenda.
@@ -220,5 +221,45 @@ class NotificationService {
   /// Verifica si las notificaciones están habilitadas
   static Future<bool> estaHabilitado() async {
     return await AwesomeNotifications().isNotificationAllowed();
+  }
+
+  // ── INICIO AUTOMÁTICO ─────────────────────────────────────────────────────
+
+  /// Llama esto al iniciar la app (cuando el usuario ya está autenticado).
+  /// Reprograma todos los recordatorios según las preferencias guardadas.
+  /// Necesario porque Android puede borrar notificaciones programadas al reiniciar.
+  static Future<void> reprogramarAlIniciar({
+    required int totalRutinas,
+    required int totalHabitos,
+  }) async {
+    final permitido = await AwesomeNotifications().isNotificationAllowed();
+    if (!permitido) return;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    final notifsRutinas = prefs.getBool('glint_notif_rutinas') ?? false;
+    final notifsHabitos = prefs.getBool('glint_notif_habitos') ?? false;
+    final horaRutinas   = prefs.getString('glint_hora_rutinas') ?? '07:00';
+    final horaHabitos   = prefs.getString('glint_hora_habitos') ?? '18:00';
+
+    if (notifsRutinas) {
+      await programarRecordatorioRutinas(
+        hora: horaRutinas,
+        totalRutinas: totalRutinas,
+      );
+    }
+
+    if (notifsHabitos) {
+      await programarRecordatorioHabitos(hora: horaHabitos);
+    }
+  }
+
+  /// Solicita permiso la primera vez que el usuario inicia sesión.
+  /// Muestra el diálogo del sistema si todavía no ha dado permiso.
+  static Future<void> solicitarPermisoAlIniciar() async {
+    final permitido = await AwesomeNotifications().isNotificationAllowed();
+    if (!permitido) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+    }
   }
 }

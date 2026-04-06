@@ -32,6 +32,7 @@ import 'shared/database/app_database.dart';
 import 'shared/di/app_router.dart';
 import 'shared/di/injection_container.dart';
 import 'shared/services/notification_service.dart';
+import 'shared/widgets/offline_banner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,7 +101,13 @@ class GlintApp extends StatelessWidget {
         locale: const Locale('es', 'SV'),
         // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
         builder: (context, child) {
-          return BlocBuilder<AuthCubit, GlintAuthState>(
+          return OfflineBanner(
+            child: BlocConsumer<AuthCubit, GlintAuthState>(
+            listener: (context, authState) {
+              if (authState is AuthAuthenticated) {
+                NotificationService.solicitarPermisoAlIniciar();
+              }
+            },
             builder: (context, authState) {
               if (authState is AuthAuthenticated) {
                 return MultiBlocProvider(
@@ -165,7 +172,7 @@ class GlintApp extends StatelessWidget {
               }
               return child!;
             },
-          );
+          ));
         },
         ),
       ),
