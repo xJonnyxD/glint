@@ -172,9 +172,11 @@ class _HomeShellState extends State<HomeShell> {
           if (didPop) return;
 
           // 1️⃣ Si hay un modal/diálogo encima, cerrarlo primero
-          final nav = Navigator.of(context);
-          if (nav.canPop()) {
-            nav.pop();
+          // rootNavigator: true → solo detecta diálogos/bottom sheets reales,
+          // no las rutas internas de GoRouter
+          final rootNav = Navigator.of(context, rootNavigator: true);
+          if (rootNav.canPop()) {
+            rootNav.pop();
             return;
           }
 

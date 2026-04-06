@@ -52,7 +52,6 @@ class _AuthScreenState extends State<AuthScreen> {
       initialDate: _fechaNacimiento ?? DateTime(hoy.year - 18, hoy.month, hoy.day),
       firstDate: DateTime(1920),
       lastDate: DateTime(hoy.year - 10, hoy.month, hoy.day),
-      locale: const Locale('es', 'SV'),
       helpText: 'Fecha de nacimiento',
       cancelText: 'Cancelar',
       confirmText: 'Confirmar',

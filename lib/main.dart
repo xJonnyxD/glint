@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -99,6 +100,16 @@ class GlintApp extends StatelessWidget {
         themeMode: themeState.modo,
         routerConfig: appRouter,
         locale: const Locale('es', 'SV'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es', 'SV'),
+          Locale('es'),
+          Locale('en'),
+        ],
         // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
         builder: (context, child) {
           return OfflineBanner(
