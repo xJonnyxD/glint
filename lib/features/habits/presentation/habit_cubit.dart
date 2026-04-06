@@ -13,18 +13,17 @@ class HabitCubit extends Cubit<HabitState> {
     cargarHabitos();
   }
 
-  /// Carga los hábitos del usuario y se mantiene escuchando cambios en tiempo real
+  /// Expone el repositorio para que la UI pueda consultar completaciones históricas
+  HabitRepository get repo => _repo;
+  String get usuarioId => _usuarioId;
+
   void cargarHabitos() {
-    _repo
-        .watchHabitos(_usuarioId)
-        .listen(
-          (habitos) => emit(HabitLoaded(habitos)),
-          // Si hay error (ej: en web), muestra lista vacía en lugar de crashear
-          onError: (_) => emit(HabitLoaded([])),
-        );
+    _repo.watchHabitos(_usuarioId).listen(
+      (habitos) => emit(HabitLoaded(habitos)),
+      onError: (_) => emit(HabitLoaded([])),
+    );
   }
 
-  /// Crea un hábito nuevo con los datos del formulario
   Future<void> crearHabito({
     required String nombre,
     required String icono,
@@ -32,43 +31,48 @@ class HabitCubit extends Cubit<HabitState> {
     required FrecuenciaHabito frecuencia,
     int metaSemanal = 7,
   }) async {
-    try {
-      final habito = HabitEntity(
-        id: const Uuid().v4(),
-        nombre: nombre,
-        icono: icono,
-        categoria: categoria,
-        frecuencia: frecuencia,
-        metaSemanal: metaSemanal,
-        completadoHoy: false,
-        rachaActual: 0,
-        rachaMaxima: 0,
-        totalCompletados: 0,
-        color: categoria.colorHex, // color basado en la categoría
-        usuarioId: _usuarioId,
-        creadoEn: DateTime.now(),
-      );
-      await _repo.crearHabito(habito);
-    } catch (e) {
-      // No emitir error para no interrumpir el stream
-    }
+    final habito = HabitEntity(
+      id:              const Uuid().v4(),
+      nombre:          nombre,
+      icono:           icono,
+      categoria:       categoria,
+      frecuencia:      frecuencia,
+      metaSemanal:     metaSemanal,
+      completadoHoy:   false,
+      rachaActual:     0,
+      rachaMaxima:     0,
+      totalCompletados: 0,
+      color:           categoria.colorHex,
+      usuarioId:       _usuarioId,
+      creadoEn:        DateTime.now(),
+    );
+    await _repo.crearHabito(habito);
   }
 
-  /// Marca o desmarca un hábito como completado hoy
+  /// Marca o desmarca un hábito. Registra la completación en el historial.
   Future<void> toggleCompletar(HabitEntity habito) async {
-    try {
-      await _repo.toggleCompletar(habito, !habito.completadoHoy);
-    } catch (e) {
-      // No emitir error para no interrumpir el stream
-    }
+    await _repo.toggleCompletar(habito, !habito.completadoHoy);
   }
 
-  /// Elimina un hábito permanentemente
+  Future<void> editarHabito({
+    required String id,
+    required String nombre,
+    required String icono,
+    required CategoriaHabito categoria,
+    required FrecuenciaHabito frecuencia,
+    required int metaSemanal,
+  }) async {
+    await _repo.editarHabito(
+      id:          id,
+      nombre:      nombre,
+      icono:       icono,
+      categoria:   categoria,
+      frecuencia:  frecuencia,
+      metaSemanal: metaSemanal,
+    );
+  }
+
   Future<void> eliminarHabito(String id) async {
-    try {
-      await _repo.eliminarHabito(id);
-    } catch (e) {
-      // No emitir error para no interrumpir el stream
-    }
+    await _repo.eliminarHabito(id);
   }
 }

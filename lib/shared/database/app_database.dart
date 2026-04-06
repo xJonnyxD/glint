@@ -7,6 +7,7 @@ import 'package:glint/features/finance/data/debt_table.dart';
 import 'package:glint/features/finance/data/recurring_expense_table.dart';
 import 'package:glint/features/agenda/data/event_table.dart';
 import 'package:glint/features/habits/data/habit_table.dart';
+import 'package:glint/features/habits/data/habit_completion_table.dart';
 import 'package:glint/features/notes/data/note_table.dart';
 import 'connection/connection.dart';
 
@@ -23,13 +24,14 @@ part 'app_database.g.dart';
   RecurringExpenses,
   Events,
   Habits,
+  HabitCompletions,
   Notes,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(connect());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +45,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(debts);
         await m.createTable(recurringExpenses);
       }
+      if (from < 7) await m.createTable(habitCompletions);
     },
   );
 }

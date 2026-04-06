@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:glint/features/habits/domain/habit_entity.dart';
+import 'package:glint/features/habits/presentation/habit_stats_sheet.dart';
+import 'package:glint/shared/services/achievement_service.dart';
+import 'package:glint/shared/widgets/racha_fuego_badge.dart';
 import 'habit_cubit.dart';
 import 'habit_state.dart';
 
@@ -10,7 +13,18 @@ class HabitsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HabitCubit, HabitState>(
+    return BlocConsumer<HabitCubit, HabitState>(
+      listener: (context, state) async {
+        // Verificar logros cada vez que cambia el estado
+        if (state is HabitLoaded) {
+          final nuevos = await AchievementService.verificarYDesbloquear(state);
+          if (context.mounted) {
+            for (final logro in nuevos) {
+              AchievementService.mostrarLogro(context, logro);
+            }
+          }
+        }
+      },
       builder: (context, state) {
         if (state is HabitLoading) {
           return const Scaffold(
@@ -36,6 +50,7 @@ class _HabitsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final cubit = context.read<HabitCubit>();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -52,23 +67,24 @@ class _HabitsView extends StatelessWidget {
             ),
             title: const Text(
               'Hábitos',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
             ),
+            actions: [
+              // Botón para abrir estadísticas y logros
+              IconButton(
+                icon: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+                tooltip: 'Estadísticas y logros',
+                onPressed: () => _mostrarEstadisticas(context, cubit),
+              ),
+            ],
           ),
 
           // ── Lista vacía ──────────────────────────────────────────────────
           if (loaded.habitos.isEmpty)
-            SliverFillRemaining(
-              child: _EmptyState(),
-            )
+            SliverFillRemaining(child: _EmptyState())
           else ...[
             // ── Resumen estadísticas ─────────────────────────────────────
-            SliverToBoxAdapter(
-              child: _EstadisticasBar(loaded: loaded),
-            ),
+            SliverToBoxAdapter(child: _EstadisticasBar(loaded: loaded)),
 
             // ── Hábitos agrupados por categoría ─────────────────────────
             ..._buildSecciones(context, loaded),
@@ -111,14 +127,30 @@ class _HabitsView extends StatelessWidget {
     return secciones;
   }
 
-  void _mostrarAgregarHabito(BuildContext context) {
+  void _mostrarAgregarHabito(BuildContext context, {HabitEntity? habitoEditar}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => BlocProvider.value(
         value: context.read<HabitCubit>(),
-        child: const _AgregarHabitoSheet(),
+        child: _AgregarHabitoSheet(habitoEditar: habitoEditar),
+      ),
+    );
+  }
+
+  void _mostrarEstadisticas(BuildContext context, HabitCubit cubit) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => HabitStatsSheet(
+        habitos: loaded.habitos,
+        repo: cubit.repo,
+        usuarioId: cubit.usuarioId,
       ),
     );
   }
@@ -348,6 +380,18 @@ class _SeccionCategoria extends StatelessWidget {
     required this.habitos,
   });
 
+  void _mostrarEditar(BuildContext context, HabitEntity habito) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BlocProvider.value(
+        value: context.read<HabitCubit>(),
+        child: _AgregarHabitoSheet(habitoEditar: habito),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final completados = habitos.where((h) => h.completadoHoy).length;
@@ -387,7 +431,10 @@ class _SeccionCategoria extends StatelessWidget {
 
         // Lista de hábitos de esta categoría
         ...habitos.map(
-          (habito) => _HabitCard(habito: habito),
+          (habito) => _HabitCard(
+            habito: habito,
+            onEditar: (ctx) => _mostrarEditar(ctx, habito),
+          ),
         ),
       ],
     );
@@ -398,7 +445,8 @@ class _SeccionCategoria extends StatelessWidget {
 
 class _HabitCard extends StatelessWidget {
   final HabitEntity habito;
-  const _HabitCard({required this.habito});
+  final void Function(BuildContext ctx) onEditar;
+  const _HabitCard({required this.habito, required this.onEditar});
 
   @override
   Widget build(BuildContext context) {
@@ -505,35 +553,48 @@ class _HabitCard extends StatelessWidget {
                                 : null,
                           ),
                     ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 12)),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${habito.rachaActual} días',
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.onSurface.withAlpha(130),
-                                  ),
-                        ),
-                        if (habito.rachaMaxima > 0) ...[
-                          const SizedBox(width: 8),
+                    const SizedBox(height: 4),
+                    if (habito.rachaActual >= 3)
+                      RachaFuegoBadge(racha: habito.rachaActual)
+                    else
+                      Row(
+                        children: [
+                          const Text('🔥', style: TextStyle(fontSize: 12)),
+                          const SizedBox(width: 2),
                           Text(
-                            '• Mejor: ${habito.rachaMaxima}',
+                            '${habito.rachaActual} días',
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
                                 ?.copyWith(
-                                  color:
-                                      colorScheme.onSurface.withAlpha(100),
+                                  color: colorScheme.onSurface.withAlpha(130),
                                 ),
                           ),
+                          if (habito.rachaMaxima > 0) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '• Mejor: ${habito.rachaMaxima}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface.withAlpha(100),
+                                  ),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
+                      ),
                   ],
                 ),
+              ),
+
+              // Botón editar
+              IconButton(
+                icon: Icon(Icons.edit_outlined,
+                    size: 18, color: colorScheme.onSurface.withAlpha(160)),
+                tooltip: 'Editar hábito',
+                onPressed: () => onEditar(context),
+                visualDensity: VisualDensity.compact,
               ),
 
               // Checkbox / toggle de completado
@@ -730,10 +791,11 @@ class _StatDetalle extends StatelessWidget {
   }
 }
 
-// ── Sheet para agregar hábito ─────────────────────────────────────────────────
+// ── Sheet para agregar o editar hábito ───────────────────────────────────────
 
 class _AgregarHabitoSheet extends StatefulWidget {
-  const _AgregarHabitoSheet();
+  final HabitEntity? habitoEditar;
+  const _AgregarHabitoSheet({this.habitoEditar});
 
   @override
   State<_AgregarHabitoSheet> createState() => _AgregarHabitoSheetState();
@@ -743,10 +805,22 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nombreCtrl = TextEditingController();
 
-  String _iconoSeleccionado = '⭐';
-  CategoriaHabito _categoriaSeleccionada = CategoriaHabito.salud;
-  FrecuenciaHabito _frecuenciaSeleccionada = FrecuenciaHabito.diario;
+  late String _iconoSeleccionado;
+  late CategoriaHabito _categoriaSeleccionada;
+  late FrecuenciaHabito _frecuenciaSeleccionada;
   bool _guardando = false;
+
+  bool get _esEdicion => widget.habitoEditar != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final h = widget.habitoEditar;
+    _iconoSeleccionado      = h?.icono ?? '⭐';
+    _categoriaSeleccionada  = h?.categoria ?? CategoriaHabito.salud;
+    _frecuenciaSeleccionada = h?.frecuencia ?? FrecuenciaHabito.diario;
+    _nombreCtrl.text        = h?.nombre ?? '';
+  }
 
   @override
   void dispose() {
@@ -787,7 +861,7 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
               const SizedBox(height: 16),
 
               Text(
-                'Nuevo hábito',
+                _esEdicion ? 'Editar hábito' : 'Nuevo hábito',
                 style:
                     Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
@@ -795,38 +869,40 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
               ),
               const SizedBox(height: 20),
 
-              // ── Hábitos sugeridos ─────────────────────────────────────
-              Text(
-                'Sugerencias rápidas',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurface.withAlpha(150),
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 40,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: habitosSugeridos.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 8),
-                  itemBuilder: (context, i) {
-                    final sug = habitosSugeridos[i];
-                    return ActionChip(
-                      label: Text('${sug['icono']} ${sug['nombre']}'),
-                      onPressed: () {
-                        setState(() {
-                          _nombreCtrl.text = sug['nombre'] as String;
-                          _iconoSeleccionado = sug['icono'] as String;
-                          _categoriaSeleccionada =
-                              sug['categoria'] as CategoriaHabito;
-                        });
-                      },
-                    );
-                  },
+              // ── Hábitos sugeridos (solo al crear) ─────────────────────
+              if (!_esEdicion) ...[
+                Text(
+                  'Sugerencias rápidas',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurface.withAlpha(150),
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 40,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: habitosSugeridos.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 8),
+                    itemBuilder: (context, i) {
+                      final sug = habitosSugeridos[i];
+                      return ActionChip(
+                        label: Text('${sug['icono']} ${sug['nombre']}'),
+                        onPressed: () {
+                          setState(() {
+                            _nombreCtrl.text = sug['nombre'] as String;
+                            _iconoSeleccionado = sug['icono'] as String;
+                            _categoriaSeleccionada =
+                                sug['categoria'] as CategoriaHabito;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               // ── Selector de icono ──────────────────────────────────────
               Text(
@@ -958,9 +1034,9 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text(
-                          'Guardar hábito',
-                          style: TextStyle(
+                      : Text(
+                          _esEdicion ? 'Actualizar hábito' : 'Guardar hábito',
+                          style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
@@ -977,14 +1053,38 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
 
     setState(() => _guardando = true);
 
-    await context.read<HabitCubit>().crearHabito(
-          nombre: _nombreCtrl.text.trim(),
-          icono: _iconoSeleccionado,
-          categoria: _categoriaSeleccionada,
-          frecuencia: _frecuenciaSeleccionada,
+    try {
+      if (_esEdicion) {
+        await context.read<HabitCubit>().editarHabito(
+              id:          widget.habitoEditar!.id,
+              nombre:      _nombreCtrl.text.trim(),
+              icono:       _iconoSeleccionado,
+              categoria:   _categoriaSeleccionada,
+              frecuencia:  _frecuenciaSeleccionada,
+              metaSemanal: widget.habitoEditar!.metaSemanal,
+            );
+      } else {
+        await context.read<HabitCubit>().crearHabito(
+              nombre:    _nombreCtrl.text.trim(),
+              icono:     _iconoSeleccionado,
+              categoria: _categoriaSeleccionada,
+              frecuencia: _frecuenciaSeleccionada,
+            );
+      }
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _guardando = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString().length > 120 ? e.toString().substring(0, 120) : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 6),
+          ),
         );
-
-    if (mounted) Navigator.pop(context);
+      }
+    }
   }
 }
 

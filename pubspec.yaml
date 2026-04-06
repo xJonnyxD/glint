@@ -26,6 +26,7 @@ dependencies:
 
   # --- Base de datos local ---
   drift: ^2.23.1
+  sqlite3_flutter_libs: ^0.5.24  # bundlea libsqlite3.so en el APK (necesario para Drift)
   sqflite: ^2.3.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
@@ -88,6 +89,9 @@ dev_dependencies:
   # --- Testing ---
   mocktail: ^1.0.4
   # bloc_test se agrega cuando se implementen los primeros BLoCs
+
+  # --- Ícono de la app ---
+  flutter_launcher_icons: ^0.14.3
 
 flutter:
   uses-material-design: true
