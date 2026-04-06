@@ -50,20 +50,14 @@ class SavingsGoalCubit extends Cubit<SavingsGoalState> {
       usuarioId: _usuarioId,
       creadoEn: ahora,
     );
-    try {
-      await _repo.crearMeta(meta);
-    } catch (_) {}
+    await _repo.crearMeta(meta);
   }
 
   Future<void> agregarAhorro(String id, double monto) async {
-    try {
-      await _repo.agregarAhorro(id, monto);
-    } catch (_) {}
+    await _repo.agregarAhorro(id, monto);
   }
 
   Future<void> eliminar(String id) async {
-    try {
-      await _repo.eliminarMeta(id);
-    } catch (_) {}
+    await _repo.eliminarMeta(id);
   }
 }

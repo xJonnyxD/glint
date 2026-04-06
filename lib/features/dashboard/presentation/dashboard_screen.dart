@@ -13,6 +13,9 @@ import 'package:glint/features/habits/presentation/habit_cubit.dart';
 import 'package:glint/features/habits/presentation/habit_state.dart';
 import 'package:glint/features/finance/presentation/finance_cubit.dart';
 import 'package:glint/features/finance/presentation/finance_state.dart';
+import 'package:glint/features/agenda/presentation/agenda_cubit.dart';
+import 'package:glint/features/agenda/presentation/agenda_state.dart';
+import 'package:glint/features/agenda/domain/event_entity.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -95,6 +98,11 @@ class DashboardScreen extends StatelessWidget {
                       child: BlocBuilder<RoutineCubit, RoutineState>(
                         builder: (context, routineState) {
                           if (routineState is RoutineLoaded) {
+                            // Racha promedio de todas las rutinas
+                            final rachas = routineState.rutinas.map((r) => r.rachaActual);
+                            final rachaPromedio = rachas.isEmpty
+                                ? 0
+                                : rachas.fold(0, (a, b) => a + b) ~/ routineState.rutinas.length;
                             return _TarjetaProgreso(
                               titulo: 'Rutinas',
                               icono: Icons.wb_sunny,
@@ -102,6 +110,18 @@ class DashboardScreen extends StatelessWidget {
                               progreso: routineState.progresoDia,
                               completadas: routineState.completadasHoy,
                               total: routineState.rutinas.length,
+                              rachaPromedio: rachaPromedio,
+                            );
+                          }
+                          if (routineState is RoutineError) {
+                            return _TarjetaProgreso(
+                              titulo: 'Rutinas',
+                              icono: Icons.wb_sunny,
+                              color: colorScheme.primary,
+                              progreso: 0,
+                              completadas: 0,
+                              total: 0,
+                              rachaPromedio: 0,
                             );
                           }
                           return _SkeletonCard(height: 150);
@@ -113,6 +133,11 @@ class DashboardScreen extends StatelessWidget {
                       child: BlocBuilder<HabitCubit, HabitState>(
                         builder: (context, habitState) {
                           if (habitState is HabitLoaded) {
+                            // Racha promedio de todos los hábitos
+                            final rachas = habitState.habitos.map((h) => h.rachaActual);
+                            final rachaPromedio = rachas.isEmpty
+                                ? 0
+                                : rachas.fold(0, (a, b) => a + b) ~/ habitState.habitos.length;
                             return _TarjetaProgreso(
                               titulo: 'Hábitos',
                               icono: Icons.favorite,
@@ -120,6 +145,7 @@ class DashboardScreen extends StatelessWidget {
                               progreso: habitState.progresoDia,
                               completadas: habitState.completadosHoy,
                               total: habitState.total,
+                              rachaPromedio: rachaPromedio,
                             );
                           }
                           return _SkeletonCard(height: 150);
@@ -177,6 +203,31 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
+              // ── Próximos eventos de Agenda ────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Próximos eventos',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: BlocBuilder<AgendaCubit, AgendaState>(
+                  builder: (context, agendaState) {
+                    if (agendaState is AgendaLoaded) {
+                      return _ProximosEventos(todos: agendaState.todos);
+                    }
+                    return _SkeletonCard(height: 80);
+                  },
+                ),
+              ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.2),
+
+              const SizedBox(height: 24),
+
               // ── Frase motivacional ────────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -218,7 +269,7 @@ class _Header extends StatelessWidget {
           bottomRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
       child: BlocBuilder<AuthCubit, GlintAuthState>(
         builder: (context, authState) {
           String nombre = 'Usuario';
@@ -310,6 +361,7 @@ class _TarjetaProgreso extends StatelessWidget {
   final double progreso;
   final int completadas;
   final int total;
+  final int rachaPromedio;
 
   const _TarjetaProgreso({
     required this.titulo,
@@ -318,12 +370,14 @@ class _TarjetaProgreso extends StatelessWidget {
     required this.progreso,
     required this.completadas,
     required this.total,
+    required this.rachaPromedio,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final porcentaje = (progreso * 100).round();
+    final enRachaFuego = completadas > 0 && rachaPromedio >= 7;
 
     return Card(
       elevation: 0,
@@ -356,7 +410,15 @@ class _TarjetaProgreso extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Icon(icono, color: color, size: 20),
+            // Mostrar 🔥 animado si hay racha >= 7, si no el ícono normal
+            if (enRachaFuego)
+              const Text('🔥', style: TextStyle(fontSize: 20))
+                  .animate(onComplete: (c) => c.repeat())
+                  .scaleXY(begin: 1.0, end: 1.25, duration: 700.ms)
+                  .then()
+                  .scaleXY(begin: 1.25, end: 1.0, duration: 700.ms)
+            else
+              Icon(icono, color: color, size: 20),
             const SizedBox(height: 4),
             Text(
               titulo,
@@ -508,12 +570,12 @@ class _FilaFinanciera extends StatelessWidget {
 
 class _AccionesRapidas extends StatelessWidget {
   static const List<_AccionItem> _acciones = [
-    _AccionItem(emoji: '☀️', label: 'Rutinas', ruta: AppRoutes.routines),
-    _AccionItem(emoji: '💪', label: 'Hábitos', ruta: AppRoutes.habits),
-    _AccionItem(emoji: '💰', label: 'Finanzas', ruta: AppRoutes.finance),
-    _AccionItem(emoji: '📅', label: 'Agenda', ruta: AppRoutes.agenda),
-    _AccionItem(emoji: '📝', label: 'Notas', ruta: AppRoutes.notes),
-    _AccionItem(emoji: '🧮', label: 'Calculadora', ruta: AppRoutes.salaryCalculator),
+    _AccionItem(emoji: '☀️', label: 'Rutinas',      ruta: AppRoutes.routines,         color: Color(0xFFFFF3E0)),
+    _AccionItem(emoji: '💪', label: 'Hábitos',      ruta: AppRoutes.habits,           color: Color(0xFFFCE4EC)),
+    _AccionItem(emoji: '💰', label: 'Finanzas',     ruta: AppRoutes.finance,          color: Color(0xFFE8F5E9)),
+    _AccionItem(emoji: '📅', label: 'Agenda',       ruta: AppRoutes.agenda,           color: Color(0xFFE3F2FD)),
+    _AccionItem(emoji: '📝', label: 'Notas',        ruta: AppRoutes.notes,            color: Color(0xFFF3E5F5)),
+    _AccionItem(emoji: '🧮', label: 'Calculadora',  ruta: AppRoutes.salaryCalculator, color: Color(0xFFFFF8E1)),
   ];
 
   const _AccionesRapidas();
@@ -542,11 +604,13 @@ class _AccionItem {
   final String emoji;
   final String label;
   final String ruta;
+  final Color color;
 
   const _AccionItem({
     required this.emoji,
     required this.label,
     required this.ruta,
+    required this.color,
   });
 }
 
@@ -589,37 +653,36 @@ class _BotonaAccionState extends State<_BotonaAccion>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ScaleTransition(
       scale: _escala,
       child: Material(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
+        color: widget.accion.color,
+        borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           onTap: () => context.go(widget.accion.ruta),
           onTapDown: _onTapDown,
           onTapUp: _onTapUp,
           onTapCancel: _onTapCancel,
-          splashColor: colorScheme.primary.withValues(alpha: 0.15),
-          highlightColor: colorScheme.primary.withValues(alpha: 0.08),
+          splashColor: Colors.black.withValues(alpha: 0.05),
+          highlightColor: Colors.black.withValues(alpha: 0.03),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   widget.accion.emoji,
-                  style: const TextStyle(fontSize: 28),
+                  style: const TextStyle(fontSize: 32),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   widget.accion.label,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                        fontSize: 11,
                       ),
                 ),
               ],
@@ -674,6 +737,147 @@ class _FraseMotivacional extends StatelessWidget {
 }
 
 // ── Skeleton loading ───────────────────────────────────────────────────────────
+
+// ── Próximos eventos ───────────────────────────────────────────────────────────
+
+class _ProximosEventos extends StatelessWidget {
+  final List<EventEntity> todos;
+  const _ProximosEventos({required this.todos});
+
+  @override
+  Widget build(BuildContext context) {
+    final ahora = DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+
+    // Filtrar eventos futuros (hoy + próximos 7 días), sin completar
+    final proximos = todos.where((e) {
+      final fechaEvento = DateTime(e.fecha.year, e.fecha.month, e.fecha.day);
+      return !e.completado &&
+          !fechaEvento.isBefore(hoy) &&
+          fechaEvento.isBefore(hoy.add(const Duration(days: 8)));
+    }).toList()
+      ..sort((a, b) => a.fecha.compareTo(b.fecha));
+
+    if (proximos.isEmpty) {
+      return Card(
+        elevation: 0,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Icon(Icons.event_available_outlined,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
+              const SizedBox(width: 12),
+              Text(
+                'Sin eventos próximos esta semana',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final mostrar = proximos.take(3).toList();
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surfaceContainerHighest,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          ...mostrar.map((evento) {
+            final esHoy = isSameDay(evento.fecha, ahora);
+            final esTarea = evento.tipo == TipoEvento.tarea;
+            final colorEvento = _hexToColor(evento.color);
+
+            return ListTile(
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colorEvento.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  esTarea ? Icons.check_circle_outline : Icons.event_outlined,
+                  color: colorEvento,
+                  size: 20,
+                ),
+              ),
+              title: Text(
+                evento.titulo,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                esHoy
+                    ? 'Hoy${evento.hora != null ? " · ${evento.hora}" : ""}'
+                    : '${_formatFechaCorta(evento.fecha)}${evento.hora != null ? " · ${evento.hora}" : ""}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: esHoy ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                  fontWeight: esHoy ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+              trailing: esHoy
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Hoy',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  : null,
+              onTap: () => context.go(AppRoutes.agenda),
+            );
+          }),
+          if (proximos.length > 3)
+            TextButton(
+              onPressed: () => context.go(AppRoutes.agenda),
+              child: Text(
+                'Ver ${proximos.length - 3} más en Agenda →',
+                style: TextStyle(fontSize: 13, color: colorScheme.primary),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  bool isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _formatFechaCorta(DateTime fecha) {
+    final meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+                   'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    return '${fecha.day} ${meses[fecha.month - 1]}';
+  }
+
+  Color _hexToColor(String hex) {
+    try {
+      return Color(int.parse('FF${hex.replaceAll('#', '')}', radix: 16));
+    } catch (_) {
+      return const Color(0xFF6750A4);
+    }
+  }
+}
+
+// ── Skeleton card ──────────────────────────────────────────────────────────────
 
 class _SkeletonCard extends StatelessWidget {
   final double height;

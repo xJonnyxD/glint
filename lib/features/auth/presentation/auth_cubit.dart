@@ -50,23 +50,32 @@ class AuthCubit extends Cubit<GlintAuthState> {
   Future<void> signUpWithEmail({
     required String email,
     required String password,
-    required String nombre,
+    required String nombres,
+    required String apellidos,
+    required String telefono,
+    DateTime? fechaNacimiento,
   }) async {
     emit(AuthLoading());
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'nombre': nombre},
+        data: {
+          'nombre': '$nombres $apellidos'.trim(),
+          'nombres': nombres,
+          'apellidos': apellidos,
+          'telefono': telefono,
+          if (fechaNacimiento != null)
+            'fecha_nacimiento': fechaNacimiento.toIso8601String().split('T').first,
+        },
       );
       if (response.session != null && response.user != null) {
-        // Si Supabase no requiere confirmación de email → sesión activa directo
+        // Supabase no requiere confirmación → sesión activa directamente
         emit(AuthAuthenticated(response.user!));
       } else if (response.user != null) {
-        // Supabase requiere confirmar email → avisar al usuario
-        emit(AuthError(
-          'Cuenta creada. Revisa tu correo $email y confirma tu cuenta antes de iniciar sesión.',
-        ));
+        // Supabase requiere confirmar email → emitir "no autenticado"
+        // para que la pantalla muestre el mensaje de éxito en verde
+        emit(AuthUnauthenticated());
       } else {
         emit(AuthError('No se pudo crear la cuenta. Intenta de nuevo.'));
       }
@@ -79,13 +88,40 @@ class AuthCubit extends Cubit<GlintAuthState> {
 
   /// Cerrar sesión
   Future<void> signOut() async {
-    emit(AuthLoading());
+    // NO emitir AuthLoading aquí — eso destruye todos los cubits del árbol
+    // antes de navegar, lo que deja las pantallas "congeladas".
+    // En su lugar, cerrar sesión y emitir directamente el estado final.
     try {
       await _supabase.auth.signOut();
-      emit(AuthUnauthenticated());
-    } catch (e) {
+    } catch (_) {
       // Si falla el cierre remoto, cerramos localmente de todas formas
+    }
+    emit(AuthUnauthenticated());
+  }
+
+  /// Refresca los datos del usuario desde Supabase (útil tras editar perfil)
+  Future<void> refreshUser() async {
+    try {
+      await _supabase.auth.refreshSession();
+      final user = _supabase.auth.currentUser;
+      if (user != null) emit(AuthAuthenticated(user));
+    } catch (_) {
+      // Si falla el refresh, no cambiar el estado actual
+    }
+  }
+
+  /// Enviar email de recuperación de contraseña
+  Future<void> resetPassword({required String email}) async {
+    emit(AuthLoading());
+    try {
+      await _supabase.auth.resetPasswordForEmail(email);
+      // Emitimos un estado de "no autenticado" para que el listener
+      // muestre el mensaje de éxito en la pantalla
       emit(AuthUnauthenticated());
+    } on AuthException catch (e) {
+      emit(AuthError(_traducirError(e.message)));
+    } catch (e) {
+      emit(AuthError('Error de conexión. Verifica tu internet.'));
     }
   }
 

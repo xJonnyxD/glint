@@ -5,8 +5,15 @@ import 'package:glint/features/agenda/domain/event_entity.dart';
 import 'agenda_cubit.dart';
 import 'agenda_state.dart';
 
-class AgendaScreen extends StatelessWidget {
+class AgendaScreen extends StatefulWidget {
   const AgendaScreen({super.key});
+
+  @override
+  State<AgendaScreen> createState() => _AgendaScreenState();
+}
+
+class _AgendaScreenState extends State<AgendaScreen> {
+  bool _vistaSemanal = false;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +24,9 @@ class AgendaScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (state is AgendaLoaded) {
-            return _AgendaContenido(state: state);
+            return _vistaSemanal
+                ? _AgendaSemanal(state: state, onToggleVista: _toggleVista)
+                : _AgendaContenido(state: state, onToggleVista: _toggleVista);
           }
           return const SizedBox();
         },
@@ -29,6 +38,8 @@ class AgendaScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _toggleVista() => setState(() => _vistaSemanal = !_vistaSemanal);
 
   void _mostrarAgregarEvento(BuildContext context) {
     final state = context.read<AgendaCubit>().state;
@@ -49,11 +60,12 @@ class AgendaScreen extends StatelessWidget {
   }
 }
 
-// ── Contenido principal ───────────────────────────────────────────────────────
+// ── Contenido principal (vista mensual) ───────────────────────────────────────
 
 class _AgendaContenido extends StatelessWidget {
   final AgendaLoaded state;
-  const _AgendaContenido({required this.state});
+  final VoidCallback onToggleVista;
+  const _AgendaContenido({required this.state, required this.onToggleVista});
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +77,11 @@ class _AgendaContenido extends StatelessWidget {
           title: const Text('Agenda'),
           pinned: true,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.view_week_outlined),
+              tooltip: 'Vista semanal',
+              onPressed: onToggleVista,
+            ),
             IconButton(
               icon: const Icon(Icons.today_outlined),
               onPressed: () => context
@@ -169,6 +186,262 @@ class _AgendaContenido extends StatelessWidget {
             delegate: SliverChildBuilderDelegate(
               (ctx, i) => _EventoCard(evento: state.eventosDelDia[i]),
               childCount: state.eventosDelDia.length,
+            ),
+          ),
+
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
+    );
+  }
+
+  Widget _buildDiaVacio(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        children: [
+          Icon(Icons.event_available_outlined,
+              size: 56, color: colorScheme.primary.withAlpha(100)),
+          const SizedBox(height: 12),
+          Text('Día libre',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text('No hay eventos para este día',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withAlpha(153),
+                  )),
+        ],
+      ),
+    );
+  }
+
+  String _formatFechaLarga(DateTime d) {
+    final dias  = ['', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+    final meses = ['', 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return '${dias[d.weekday].substring(0, 1).toUpperCase()}${dias[d.weekday].substring(1)}, ${d.day} de ${meses[d.month]}';
+  }
+}
+
+// ── Vista semanal ─────────────────────────────────────────────────────────────
+
+class _AgendaSemanal extends StatefulWidget {
+  final AgendaLoaded state;
+  final VoidCallback onToggleVista;
+  const _AgendaSemanal({required this.state, required this.onToggleVista});
+
+  @override
+  State<_AgendaSemanal> createState() => _AgendaSemanalState();
+}
+
+class _AgendaSemanalState extends State<_AgendaSemanal> {
+  late DateTime _semanaActual;
+
+  static const _diasCortos = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  @override
+  void initState() {
+    super.initState();
+    // Calcular el lunes de la semana del día seleccionado
+    final seleccionado = widget.state.diaSeleccionado;
+    _semanaActual = seleccionado.subtract(Duration(days: seleccionado.weekday - 1));
+  }
+
+  DateTime get _lunes => _semanaActual;
+
+  String _formatSemana() {
+    const meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+        'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    final domingo = _lunes.add(const Duration(days: 6));
+    if (_lunes.month == domingo.month) {
+      return '${_lunes.day} – ${domingo.day} de ${meses[_lunes.month]} ${_lunes.year}';
+    }
+    return '${_lunes.day} ${meses[_lunes.month]} – ${domingo.day} ${meses[domingo.month]}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final diaSeleccionado = widget.state.diaSeleccionado;
+
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          title: const Text('Agenda'),
+          pinned: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.calendar_month_outlined),
+              tooltip: 'Vista mensual',
+              onPressed: widget.onToggleVista,
+            ),
+            IconButton(
+              icon: const Icon(Icons.today_outlined),
+              tooltip: 'Hoy',
+              onPressed: () {
+                final hoy = DateTime.now();
+                context.read<AgendaCubit>().seleccionarDia(hoy);
+                setState(() {
+                  _semanaActual = hoy.subtract(Duration(days: hoy.weekday - 1));
+                });
+              },
+            ),
+          ],
+        ),
+
+        // Cabecera de semana con navegación
+        SliverToBoxAdapter(
+          child: Container(
+            color: colorScheme.surface,
+            padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+            child: Column(
+              children: [
+                // Navegación entre semanas
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      onPressed: () => setState(() {
+                        _semanaActual = _semanaActual.subtract(const Duration(days: 7));
+                      }),
+                    ),
+                    Text(
+                      _formatSemana(),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () => setState(() {
+                        _semanaActual = _semanaActual.add(const Duration(days: 7));
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Fila de 7 días
+                Row(
+                  children: List.generate(7, (i) {
+                    final dia = _lunes.add(Duration(days: i));
+                    final esSeleccionado = isSameDay(dia, diaSeleccionado);
+                    final esHoy = isSameDay(dia, DateTime.now());
+                    final tieneEventos = widget.state.todos
+                        .any((e) => isSameDay(e.fecha, dia));
+
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => context.read<AgendaCubit>().seleccionarDia(dia),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: esSeleccionado
+                                ? colorScheme.primary
+                                : esHoy
+                                    ? colorScheme.primary.withAlpha(30)
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _diasCortos[i],
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: esSeleccionado
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurface.withAlpha(160),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${dia.day}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: esSeleccionado
+                                      ? colorScheme.onPrimary
+                                      : esHoy
+                                          ? colorScheme.primary
+                                          : colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Punto indicador de eventos
+                              Container(
+                                width: 5,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: tieneEventos
+                                      ? (esSeleccionado
+                                          ? colorScheme.onPrimary.withAlpha(200)
+                                          : colorScheme.secondary)
+                                      : Colors.transparent,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SliverToBoxAdapter(child: Divider(height: 1)),
+
+        // Encabezado del día seleccionado
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _formatFechaLarga(diaSeleccionado),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${widget.state.eventosDelDia.length} eventos',
+                    style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Lista de eventos del día seleccionado
+        if (widget.state.eventosDelDia.isEmpty)
+          SliverToBoxAdapter(child: _buildDiaVacio(context))
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) => _EventoCard(evento: widget.state.eventosDelDia[i]),
+              childCount: widget.state.eventosDelDia.length,
             ),
           ),
 

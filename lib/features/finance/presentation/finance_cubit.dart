@@ -42,16 +42,11 @@ class FinanceCubit extends Cubit<FinanceState> {
       usuarioId:      _usuarioId,
       creadaEn:       DateTime.now(),
     );
-    try {
-      await _repo.crearTransaccion(tx);
-    } catch (_) {
-      // en web sin SQLite el guardado falla silenciosamente
-    }
+    // Dejar que el error se propague a la UI para que pueda mostrarlo
+    await _repo.crearTransaccion(tx);
   }
 
   Future<void> eliminarTransaccion(String id) async {
-    try {
-      await _repo.eliminarTransaccion(id);
-    } catch (_) {}
+    await _repo.eliminarTransaccion(id);
   }
 }

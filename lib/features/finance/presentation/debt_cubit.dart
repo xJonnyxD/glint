@@ -58,20 +58,14 @@ class DebtCubit extends Cubit<DebtState> {
       usuarioId: _usuarioId,
       creadoEn: ahora,
     );
-    try {
-      await _repo.crearDeuda(deuda);
-    } catch (_) {}
+    await _repo.crearDeuda(deuda);
   }
 
   Future<void> marcarPagado(String id) async {
-    try {
-      await _repo.marcarPagado(id);
-    } catch (_) {}
+    await _repo.marcarPagado(id);
   }
 
   Future<void> eliminar(String id) async {
-    try {
-      await _repo.eliminarDeuda(id);
-    } catch (_) {}
+    await _repo.eliminarDeuda(id);
   }
 }

@@ -69,20 +69,14 @@ class RecurringExpenseCubit extends Cubit<RecurringExpenseState> {
       usuarioId: _usuarioId,
       creadoEn: ahora,
     );
-    try {
-      await _repo.crearRecurrente(gasto);
-    } catch (_) {}
+    await _repo.crearRecurrente(gasto);
   }
 
   Future<void> toggleActivo(String id, bool activo) async {
-    try {
-      await _repo.toggleActivo(id, activo);
-    } catch (_) {}
+    await _repo.toggleActivo(id, activo);
   }
 
   Future<void> eliminar(String id) async {
-    try {
-      await _repo.eliminarRecurrente(id);
-    } catch (_) {}
+    await _repo.eliminarRecurrente(id);
   }
 }

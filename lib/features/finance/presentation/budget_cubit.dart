@@ -45,20 +45,14 @@ class BudgetCubit extends Cubit<BudgetState> {
       usuarioId: _usuarioId,
       creadoEn: ahora,
     );
-    try {
-      await _repo.crearBudget(budget);
-    } catch (_) {}
+    await _repo.crearBudget(budget);
   }
 
   Future<void> actualizarLimite(String id, double nuevoLimite) async {
-    try {
-      await _repo.actualizarLimite(id, nuevoLimite);
-    } catch (_) {}
+    await _repo.actualizarLimite(id, nuevoLimite);
   }
 
   Future<void> eliminar(String id) async {
-    try {
-      await _repo.eliminarBudget(id);
-    } catch (_) {}
+    await _repo.eliminarBudget(id);
   }
 }
