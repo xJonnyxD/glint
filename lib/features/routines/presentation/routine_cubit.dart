@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:glint/features/routines/data/routine_repository.dart';
 import 'package:glint/features/routines/domain/routine_entity.dart';
 import 'package:glint/shared/services/notification_service.dart';
+import 'package:glint/shared/services/xp_service.dart';
 import 'routine_state.dart';
 
 /// RoutineCubit — maneja toda la lógica de rutinas
@@ -61,6 +62,7 @@ class RoutineCubit extends Cubit<RoutineState> {
     await _repo.toggleCompletar(rutina.id, !rutina.completadaHoy);
     if (!rutina.completadaHoy) {
       await _repo.actualizarRacha(rutina.id, nuevaRacha);
+      await XpService.agregarXP(15, motivo: 'Rutina completada: ${rutina.nombre}');
     }
   }
 

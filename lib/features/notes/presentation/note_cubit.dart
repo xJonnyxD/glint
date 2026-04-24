@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/notes/data/note_repository.dart';
 import 'package:glint/features/notes/domain/note_entity.dart';
+import 'package:glint/shared/services/xp_service.dart';
 import 'note_state.dart';
 
 class NoteCubit extends Cubit<NoteState> {
@@ -49,6 +50,7 @@ class NoteCubit extends Cubit<NoteState> {
       actualizadaEn: ahora,
     );
     await _repo.crearNota(nota);
+    await XpService.agregarXP(5, motivo: 'Nota creada: $titulo');
   }
 
   Future<void> actualizarNota(NoteEntity nota) async {

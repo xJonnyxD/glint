@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/habits/data/habit_repository.dart';
 import 'package:glint/features/habits/domain/habit_entity.dart';
+import 'package:glint/shared/services/xp_service.dart';
 import 'habit_state.dart';
 
 /// HabitCubit — maneja toda la lógica de hábitos
@@ -51,7 +52,11 @@ class HabitCubit extends Cubit<HabitState> {
 
   /// Marca o desmarca un hábito. Registra la completación en el historial.
   Future<void> toggleCompletar(HabitEntity habito) async {
-    await _repo.toggleCompletar(habito, !habito.completadoHoy);
+    final completando = !habito.completadoHoy;
+    await _repo.toggleCompletar(habito, completando);
+    if (completando) {
+      await XpService.agregarXP(10, motivo: 'Hábito completado: ${habito.nombre}');
+    }
   }
 
   Future<void> editarHabito({
