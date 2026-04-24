@@ -1,3 +1,7 @@
+# Variables de entorno (nunca subir a GitHub)
+env.json
+.env
+
 # Miscellaneous
 *.class
 *.log
@@ -57,3 +61,6 @@ android/key.properties
 # Generados por build_runner (no ignorar *.g.dart en el repo,
 # pero sí el archivo de config de injectable)
 lib/shared/di/injection_container.config.dart
+
+# VS Code launch config (contiene keys privadas)
+.vscode/launch.json

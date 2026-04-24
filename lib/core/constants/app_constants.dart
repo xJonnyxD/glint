@@ -8,8 +8,8 @@ abstract class AppConstants {
   // ── Supabase (reemplazar con tus keys reales en .env) ─────────────────────
   // IMPORTANTE: Nunca hardcodear keys en producción.
   // Usar flutter_dotenv o --dart-define para inyectarlas.
-  static const String supabaseUrl    = String.fromEnvironment('SUPABASE_URL');
-  static const String supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const String supabaseUrl     = 'https://glenycnniedmxwadilfd.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZW55Y25uaWVkbXh3YWRpbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzI3NjEsImV4cCI6MjA5MDU0ODc2MX0.opOPvu8LHlUhy09l_M_UpunGJdXOsdaFPFerPWTkWFs';
 
   // ── Hive — nombres de boxes ────────────────────────────────────────────────
   static const String hiveBoxSettings    = 'glint_settings';
@@ -72,7 +72,15 @@ abstract class AppRoutes {
   static const String financeDetail  = '/home/finance/:id';
   static const String agenda         = '/home/agenda';
   static const String profile        = '/home/profile';
-  static const String settings       = '/settings';
-  static const String backup         = '/settings/backup';
-  static const String gamification   = '/home/gamification';
+  static const String onboarding       = '/onboarding';
+  static const String notes            = '/home/notes';
+  static const String settings         = '/settings';
+  static const String backup           = '/settings/backup';
+  static const String gamification     = '/home/gamification';
+  static const String salaryCalculator    = '/salary-calculator';
+  static const String financeBudget       = '/home/finance/budget';
+  static const String financeSavingsGoals = '/home/finance/savings-goals';
+  static const String financeDebts        = '/home/finance/debts';
+  static const String financeRecurring    = '/home/finance/recurring';
+  static const String dashboard           = '/home/dashboard';
 }
