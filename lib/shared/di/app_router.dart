@@ -24,9 +24,11 @@ import 'package:glint/features/profile/presentation/profile_screen.dart';
 import 'package:glint/features/settings/presentation/settings_screen.dart';
 import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
 import 'package:glint/features/gamification/presentation/gamification_screen.dart';
+import 'package:glint/shared/services/notification_handler.dart';
 
 /// Router principal de Glint usando GoRouter
 final GoRouter appRouter = GoRouter(
+  navigatorKey: NotificationHandler.navigatorKey,
   initialLocation: AppRoutes.splash,
   debugLogDiagnostics: kDebugMode,
   routes: [

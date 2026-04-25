@@ -34,6 +34,7 @@ import 'shared/database/app_database.dart';
 import 'shared/di/app_router.dart';
 import 'shared/di/injection_container.dart';
 import 'shared/services/notification_service.dart';
+import 'shared/services/notification_handler.dart';
 import 'shared/widgets/offline_banner.dart';
 
 Future<void> main() async {
@@ -69,6 +70,7 @@ Future<void> main() async {
 
   // Inicializar sistema de notificaciones locales
   await NotificationService.initialize();
+  await NotificationHandler.initialize();
 
   // Base de datos local Drift (singleton para toda la app)
   final appDatabase = AppDatabase();

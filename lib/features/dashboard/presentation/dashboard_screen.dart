@@ -97,6 +97,12 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: BlocBuilder<RoutineCubit, RoutineState>(
+                        buildWhen: (prev, curr) =>
+                            prev.runtimeType != curr.runtimeType ||
+                            (curr is RoutineLoaded &&
+                                prev is RoutineLoaded &&
+                                (curr.completadasHoy != prev.completadasHoy ||
+                                    curr.progresoDia != prev.progresoDia)),
                         builder: (context, routineState) {
                           if (routineState is RoutineLoaded) {
                             // Racha promedio de todas las rutinas
@@ -132,6 +138,12 @@ class DashboardScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: BlocBuilder<HabitCubit, HabitState>(
+                        buildWhen: (prev, curr) =>
+                            prev.runtimeType != curr.runtimeType ||
+                            (curr is HabitLoaded &&
+                                prev is HabitLoaded &&
+                                (curr.completadosHoy != prev.completadosHoy ||
+                                    curr.progresoDia != prev.progresoDia)),
                         builder: (context, habitState) {
                           if (habitState is HabitLoaded) {
                             // Racha promedio de todos los hábitos

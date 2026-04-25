@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:glint/features/notes/domain/note_entity.dart';
@@ -14,9 +15,11 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   bool _searchVisible = false;
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -118,8 +121,11 @@ class _NotesScreenState extends State<NotesScreen> {
             contentPadding: const EdgeInsets.symmetric(vertical: 0),
           ),
           onChanged: (v) {
-            context.read<NoteCubit>().buscar(v);
             setState(() {});
+            _debounce?.cancel();
+            _debounce = Timer(const Duration(milliseconds: 300), () {
+              context.read<NoteCubit>().buscar(v);
+            });
           },
         ),
       ),
