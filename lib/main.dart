@@ -29,6 +29,7 @@ import 'features/finance/data/debt_repository.dart';
 import 'features/finance/presentation/debt_cubit.dart';
 import 'features/finance/data/recurring_expense_repository.dart';
 import 'features/finance/presentation/recurring_expense_cubit.dart';
+import 'features/gamification/presentation/gamification_cubit.dart';
 import 'shared/database/app_database.dart';
 import 'shared/di/app_router.dart';
 import 'shared/di/injection_container.dart';
@@ -176,6 +177,9 @@ class GlintApp extends StatelessWidget {
                         RecurringExpenseRepository(appDatabase),
                         authState.user.id,
                       ),
+                    ),
+                    BlocProvider<GamificationCubit>(
+                      create: (_) => GamificationCubit(),
                     ),
                   ],
                   child: child!,

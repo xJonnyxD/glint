@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,11 +22,13 @@ import 'package:glint/features/agenda/presentation/agenda_screen.dart';
 import 'package:glint/features/notes/presentation/notes_screen.dart';
 import 'package:glint/features/profile/presentation/profile_screen.dart';
 import 'package:glint/features/settings/presentation/settings_screen.dart';
+import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
+import 'package:glint/features/gamification/presentation/gamification_screen.dart';
 
 /// Router principal de Glint usando GoRouter
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
-  debugLogDiagnostics: true,
+  debugLogDiagnostics: kDebugMode,
   routes: [
     // ── Splash ───────────────────────────────────────────────────────────────
     GoRoute(
@@ -108,6 +111,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.settings,
       builder: (context, state) => const SettingsScreen(),
+    ),
+
+    // ── Gamificación ──────────────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.gamification,
+      builder: (context, state) => BlocProvider(
+        create: (_) => GamificationCubit(),
+        child: const GamificationScreen(),
+      ),
     ),
   ],
 

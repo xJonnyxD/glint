@@ -16,6 +16,7 @@ import 'package:glint/features/finance/presentation/finance_state.dart';
 import 'package:glint/features/agenda/presentation/agenda_cubit.dart';
 import 'package:glint/features/agenda/presentation/agenda_state.dart';
 import 'package:glint/features/agenda/domain/event_entity.dart';
+import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -200,6 +201,90 @@ class DashboardScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _AccionesRapidas(),
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.3),
+
+              const SizedBox(height: 24),
+
+              // ── Tu progreso (XP / nivel) ──────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Tu progreso',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Builder(builder: (context) {
+                  try {
+                    return BlocBuilder<GamificationCubit, GamificationState>(
+                      builder: (context, gamState) {
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(gamState.emojiNivel,
+                                        style: const TextStyle(fontSize: 28)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(gamState.nivel,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 16)),
+                                          Text('${gamState.xpTotal} XP total',
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  color:
+                                                      Colors.grey.shade600)),
+                                        ],
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          context.push(AppRoutes.gamification),
+                                      child: const Text('Ver logros'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: gamState.progreso,
+                                    minHeight: 8,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  gamState.xpParaSiguiente > 0
+                                      ? '${gamState.xpParaSiguiente} XP para el siguiente nivel'
+                                      : '¡Nivel máximo! 👑',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  } catch (_) {
+                    return const SizedBox.shrink();
+                  }
+                }),
+              ).animate().fadeIn(delay: 420.ms).slideY(begin: 0.2),
 
               const SizedBox(height: 24),
 

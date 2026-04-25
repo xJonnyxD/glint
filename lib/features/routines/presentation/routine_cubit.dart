@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/routines/data/routine_repository.dart';
@@ -11,13 +12,15 @@ class RoutineCubit extends Cubit<RoutineState> {
   final RoutineRepository _repo;
   final String _usuarioId;
   bool _notifsProgramadas = false;
+  StreamSubscription? _sub;
 
   RoutineCubit(this._repo, this._usuarioId) : super(RoutineLoading()) {
     cargarRutinas();
   }
 
   void cargarRutinas() {
-    _repo.watchRutinas(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchRutinas(_usuarioId).listen(
       (rutinas) {
         emit(RoutineLoaded(rutinas));
         // Reprogramar notificación con el conteo real (solo la primera vez)
@@ -84,5 +87,11 @@ class RoutineCubit extends Cubit<RoutineState> {
 
   Future<void> eliminarRutina(String id) async {
     await _repo.eliminarRutina(id);
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 }

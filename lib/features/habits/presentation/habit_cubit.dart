@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/habits/data/habit_repository.dart';
@@ -9,6 +10,7 @@ import 'habit_state.dart';
 class HabitCubit extends Cubit<HabitState> {
   final HabitRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   HabitCubit(this._repo, this._usuarioId) : super(HabitLoading()) {
     cargarHabitos();
@@ -19,7 +21,8 @@ class HabitCubit extends Cubit<HabitState> {
   String get usuarioId => _usuarioId;
 
   void cargarHabitos() {
-    _repo.watchHabitos(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchHabitos(_usuarioId).listen(
       (habitos) => emit(HabitLoaded(habitos)),
       onError: (_) => emit(HabitLoaded([])),
     );
@@ -79,5 +82,11 @@ class HabitCubit extends Cubit<HabitState> {
 
   Future<void> eliminarHabito(String id) async {
     await _repo.eliminarHabito(id);
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 }

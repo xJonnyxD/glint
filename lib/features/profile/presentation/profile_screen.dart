@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:glint/core/theme/theme_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart';
+import 'package:glint/core/constants/app_constants.dart';
+import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
 import 'package:glint/features/profile/data/profile_settings.dart';
 import 'package:glint/shared/services/biometric_service.dart';
 
@@ -233,6 +236,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ── SECCIÓN: SEGURIDAD ────────────────────────────────
                     _SectionHeader(title: 'Seguridad'),
                     _BiometricTile(),
+                    const SizedBox(height: 24),
+
+                    // ── SECCIÓN: GAMIFICACIÓN ─────────────────────────────
+                    _SectionHeader(title: 'Gamificación'),
+                    Builder(builder: (context) {
+                      try {
+                        return BlocBuilder<GamificationCubit, GamificationState>(
+                          builder: (context, gamState) => Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: Card(
+                              child: ListTile(
+                                leading: Text(gamState.emojiNivel,
+                                    style: const TextStyle(fontSize: 28)),
+                                title: Text(gamState.nivel,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600)),
+                                subtitle: Text(
+                                    '${gamState.xpTotal} XP acumulados'),
+                                trailing: FilledButton.tonal(
+                                  onPressed: () =>
+                                      context.push(AppRoutes.gamification),
+                                  child: const Text('Ver logros'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      } catch (_) {
+                        return const SizedBox.shrink();
+                      }
+                    }),
                     const SizedBox(height: 24),
 
                     // ── SECCIÓN: APP ───────────────────────────────────────
