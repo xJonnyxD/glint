@@ -37,6 +37,7 @@ class NoteCubit extends Cubit<NoteState> {
     required String color,
     required bool esChecklist,
     List<ChecklistItem> items = const [],
+    String tags = '',
   }) async {
     final ahora = DateTime.now();
     final nota = NoteEntity(
@@ -51,6 +52,7 @@ class NoteCubit extends Cubit<NoteState> {
       usuarioId: _usuarioId,
       creadaEn: ahora,
       actualizadaEn: ahora,
+      tags: tags,
     );
     await _repo.crearNota(nota);
     await XpService.agregarXP(5, motivo: 'Nota creada: $titulo');

@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:glint/features/finance/domain/budget_entity.dart';
 import 'package:glint/features/finance/domain/transaction_entity.dart';
 import 'budget_cubit.dart';
+import 'finance_cubit.dart';
+import 'finance_state.dart';
 
 final _fmt = NumberFormat.currency(locale: 'en_US', symbol: '\$');
 
@@ -168,44 +170,131 @@ class _CategoriaConPresupuesto extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(categoria.emoji, style: const TextStyle(fontSize: 22)),
-          ),
-        ),
-        title: Text(
-          categoria.nombre,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        subtitle: Text(
-          'Límite: ${_fmt.format(budget.limite)}',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
-              onPressed: () => _mostrarSheet(context, presupuestoExistente: budget),
-              tooltip: 'Editar límite',
+    return BlocBuilder<FinanceCubit, FinanceState>(
+      builder: (context, financeState) {
+        double gastoCategoria = 0.0;
+        if (financeState is FinanceLoaded) {
+          final ahora = DateTime.now();
+          gastoCategoria = financeState.transacciones
+              .where((t) =>
+                  t.esGasto &&
+                  t.categoria == budget.categoria &&
+                  t.fecha.month == ahora.month &&
+                  t.fecha.year == ahora.year)
+              .fold(0.0, (sum, t) => sum + t.monto);
+        }
+
+        final progreso = budget.limite > 0
+            ? (gastoCategoria / budget.limite).clamp(0.0, 1.0)
+            : 0.0;
+        final porcentaje = budget.limite > 0
+            ? (gastoCategoria / budget.limite * 100)
+            : 0.0;
+
+        final Color barColor;
+        if (porcentaje >= 100) {
+          barColor = Colors.red;
+        } else if (porcentaje >= 80) {
+          barColor = Colors.orange;
+        } else {
+          barColor = colorScheme.primary;
+        }
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          categoria.emoji,
+                          style: const TextStyle(fontSize: 22),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            categoria.nombre,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            '${_fmt.format(gastoCategoria)} de ${_fmt.format(budget.limite)}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: barColor,
+                                  fontWeight: porcentaje >= 80
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                          onPressed: () =>
+                              _mostrarSheet(context, presupuestoExistente: budget),
+                          tooltip: 'Editar límite',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                          onPressed: () =>
+                              context.read<BudgetCubit>().eliminar(budget.id),
+                          tooltip: 'Eliminar presupuesto',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progreso,
+                    minHeight: 6,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                  ),
+                ),
+                if (porcentaje >= 100) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '¡Superaste el límite! (${porcentaje.round()}%)',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ] else if (porcentaje >= 80) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Cerca del límite (${porcentaje.round()}%)',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Colors.orange,
+                        ),
+                  ),
+                ],
+              ],
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline, color: colorScheme.error),
-              onPressed: () => context.read<BudgetCubit>().eliminar(budget.id),
-              tooltip: 'Eliminar presupuesto',
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

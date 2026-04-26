@@ -11,6 +11,7 @@ class NoteEntity {
   final String usuarioId;
   final DateTime creadaEn;
   final DateTime actualizadaEn;
+  final String tags; // etiquetas separadas por coma: "trabajo,personal,ideas"
 
   const NoteEntity({
     required this.id,
@@ -24,6 +25,7 @@ class NoteEntity {
     required this.usuarioId,
     required this.creadaEn,
     required this.actualizadaEn,
+    this.tags = '',
   });
 
   NoteEntity copyWith({
@@ -38,6 +40,7 @@ class NoteEntity {
     String? usuarioId,
     DateTime? creadaEn,
     DateTime? actualizadaEn,
+    String? tags,
   }) {
     return NoteEntity(
       id: id ?? this.id,
@@ -51,6 +54,7 @@ class NoteEntity {
       usuarioId: usuarioId ?? this.usuarioId,
       creadaEn: creadaEn ?? this.creadaEn,
       actualizadaEn: actualizadaEn ?? this.actualizadaEn,
+      tags: tags ?? this.tags,
     );
   }
 }

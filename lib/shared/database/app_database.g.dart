@@ -5282,6 +5282,16 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         requiredDuringInsert: false,
         defaultValue: currentDateAndTime,
       );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5295,6 +5305,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     usuarioId,
     creadaEn,
     actualizadaEn,
+    tags,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5383,6 +5394,12 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         ),
       );
     }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
+    }
     return context;
   }
 
@@ -5436,6 +5453,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}actualizada_en'],
       )!,
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      )!,
     );
   }
 
@@ -5457,6 +5478,7 @@ class Note extends DataClass implements Insertable<Note> {
   final String usuarioId;
   final DateTime creadaEn;
   final DateTime actualizadaEn;
+  final String tags;
   const Note({
     required this.id,
     required this.titulo,
@@ -5469,6 +5491,7 @@ class Note extends DataClass implements Insertable<Note> {
     required this.usuarioId,
     required this.creadaEn,
     required this.actualizadaEn,
+    required this.tags,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5484,6 +5507,7 @@ class Note extends DataClass implements Insertable<Note> {
     map['usuario_id'] = Variable<String>(usuarioId);
     map['creada_en'] = Variable<DateTime>(creadaEn);
     map['actualizada_en'] = Variable<DateTime>(actualizadaEn);
+    map['tags'] = Variable<String>(tags);
     return map;
   }
 
@@ -5500,6 +5524,7 @@ class Note extends DataClass implements Insertable<Note> {
       usuarioId: Value(usuarioId),
       creadaEn: Value(creadaEn),
       actualizadaEn: Value(actualizadaEn),
+      tags: Value(tags),
     );
   }
 
@@ -5520,6 +5545,7 @@ class Note extends DataClass implements Insertable<Note> {
       usuarioId: serializer.fromJson<String>(json['usuarioId']),
       creadaEn: serializer.fromJson<DateTime>(json['creadaEn']),
       actualizadaEn: serializer.fromJson<DateTime>(json['actualizadaEn']),
+      tags: serializer.fromJson<String>(json['tags']),
     );
   }
   @override
@@ -5537,6 +5563,7 @@ class Note extends DataClass implements Insertable<Note> {
       'usuarioId': serializer.toJson<String>(usuarioId),
       'creadaEn': serializer.toJson<DateTime>(creadaEn),
       'actualizadaEn': serializer.toJson<DateTime>(actualizadaEn),
+      'tags': serializer.toJson<String>(tags),
     };
   }
 
@@ -5552,6 +5579,7 @@ class Note extends DataClass implements Insertable<Note> {
     String? usuarioId,
     DateTime? creadaEn,
     DateTime? actualizadaEn,
+    String? tags,
   }) => Note(
     id: id ?? this.id,
     titulo: titulo ?? this.titulo,
@@ -5564,6 +5592,7 @@ class Note extends DataClass implements Insertable<Note> {
     usuarioId: usuarioId ?? this.usuarioId,
     creadaEn: creadaEn ?? this.creadaEn,
     actualizadaEn: actualizadaEn ?? this.actualizadaEn,
+    tags: tags ?? this.tags,
   );
   Note copyWithCompanion(NotesCompanion data) {
     return Note(
@@ -5582,6 +5611,7 @@ class Note extends DataClass implements Insertable<Note> {
       actualizadaEn: data.actualizadaEn.present
           ? data.actualizadaEn.value
           : this.actualizadaEn,
+      tags: data.tags.present ? data.tags.value : this.tags,
     );
   }
 
@@ -5598,7 +5628,8 @@ class Note extends DataClass implements Insertable<Note> {
           ..write('itemsJson: $itemsJson, ')
           ..write('usuarioId: $usuarioId, ')
           ..write('creadaEn: $creadaEn, ')
-          ..write('actualizadaEn: $actualizadaEn')
+          ..write('actualizadaEn: $actualizadaEn, ')
+          ..write('tags: $tags')
           ..write(')'))
         .toString();
   }
@@ -5616,6 +5647,7 @@ class Note extends DataClass implements Insertable<Note> {
     usuarioId,
     creadaEn,
     actualizadaEn,
+    tags,
   );
   @override
   bool operator ==(Object other) =>
@@ -5631,7 +5663,8 @@ class Note extends DataClass implements Insertable<Note> {
           other.itemsJson == this.itemsJson &&
           other.usuarioId == this.usuarioId &&
           other.creadaEn == this.creadaEn &&
-          other.actualizadaEn == this.actualizadaEn);
+          other.actualizadaEn == this.actualizadaEn &&
+          other.tags == this.tags);
 }
 
 class NotesCompanion extends UpdateCompanion<Note> {
@@ -5646,6 +5679,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
   final Value<String> usuarioId;
   final Value<DateTime> creadaEn;
   final Value<DateTime> actualizadaEn;
+  final Value<String> tags;
   final Value<int> rowid;
   const NotesCompanion({
     this.id = const Value.absent(),
@@ -5659,6 +5693,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.usuarioId = const Value.absent(),
     this.creadaEn = const Value.absent(),
     this.actualizadaEn = const Value.absent(),
+    this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NotesCompanion.insert({
@@ -5673,6 +5708,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     required String usuarioId,
     this.creadaEn = const Value.absent(),
     this.actualizadaEn = const Value.absent(),
+    this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        titulo = Value(titulo),
@@ -5689,6 +5725,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Expression<String>? usuarioId,
     Expression<DateTime>? creadaEn,
     Expression<DateTime>? actualizadaEn,
+    Expression<String>? tags,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5703,6 +5740,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       if (usuarioId != null) 'usuario_id': usuarioId,
       if (creadaEn != null) 'creada_en': creadaEn,
       if (actualizadaEn != null) 'actualizada_en': actualizadaEn,
+      if (tags != null) 'tags': tags,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5719,6 +5757,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Value<String>? usuarioId,
     Value<DateTime>? creadaEn,
     Value<DateTime>? actualizadaEn,
+    Value<String>? tags,
     Value<int>? rowid,
   }) {
     return NotesCompanion(
@@ -5733,6 +5772,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       usuarioId: usuarioId ?? this.usuarioId,
       creadaEn: creadaEn ?? this.creadaEn,
       actualizadaEn: actualizadaEn ?? this.actualizadaEn,
+      tags: tags ?? this.tags,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5773,6 +5813,9 @@ class NotesCompanion extends UpdateCompanion<Note> {
     if (actualizadaEn.present) {
       map['actualizada_en'] = Variable<DateTime>(actualizadaEn.value);
     }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5793,6 +5836,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
           ..write('usuarioId: $usuarioId, ')
           ..write('creadaEn: $creadaEn, ')
           ..write('actualizadaEn: $actualizadaEn, ')
+          ..write('tags: $tags, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8407,6 +8451,7 @@ typedef $$NotesTableCreateCompanionBuilder =
       required String usuarioId,
       Value<DateTime> creadaEn,
       Value<DateTime> actualizadaEn,
+      Value<String> tags,
       Value<int> rowid,
     });
 typedef $$NotesTableUpdateCompanionBuilder =
@@ -8422,6 +8467,7 @@ typedef $$NotesTableUpdateCompanionBuilder =
       Value<String> usuarioId,
       Value<DateTime> creadaEn,
       Value<DateTime> actualizadaEn,
+      Value<String> tags,
       Value<int> rowid,
     });
 
@@ -8485,6 +8531,11 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<DateTime> get actualizadaEn => $composableBuilder(
     column: $table.actualizadaEn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8552,6 +8603,11 @@ class $$NotesTableOrderingComposer
     column: $table.actualizadaEn,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$NotesTableAnnotationComposer
@@ -8599,6 +8655,9 @@ class $$NotesTableAnnotationComposer
     column: $table.actualizadaEn,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 }
 
 class $$NotesTableTableManager
@@ -8640,6 +8699,7 @@ class $$NotesTableTableManager
                 Value<String> usuarioId = const Value.absent(),
                 Value<DateTime> creadaEn = const Value.absent(),
                 Value<DateTime> actualizadaEn = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion(
                 id: id,
@@ -8653,6 +8713,7 @@ class $$NotesTableTableManager
                 usuarioId: usuarioId,
                 creadaEn: creadaEn,
                 actualizadaEn: actualizadaEn,
+                tags: tags,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8668,6 +8729,7 @@ class $$NotesTableTableManager
                 required String usuarioId,
                 Value<DateTime> creadaEn = const Value.absent(),
                 Value<DateTime> actualizadaEn = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion.insert(
                 id: id,
@@ -8681,6 +8743,7 @@ class $$NotesTableTableManager
                 usuarioId: usuarioId,
                 creadaEn: creadaEn,
                 actualizadaEn: actualizadaEn,
+                tags: tags,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

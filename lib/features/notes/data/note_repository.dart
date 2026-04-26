@@ -54,6 +54,7 @@ class NoteRepository {
       usuarioId: row.usuarioId,
       creadaEn: row.creadaEn,
       actualizadaEn: row.actualizadaEn,
+      tags: row.tags,
     );
   }
 
@@ -70,6 +71,7 @@ class NoteRepository {
       usuarioId: Value(e.usuarioId),
       creadaEn: Value(e.creadaEn),
       actualizadaEn: Value(e.actualizadaEn),
+      tags: Value(e.tags),
     );
   }
 }
