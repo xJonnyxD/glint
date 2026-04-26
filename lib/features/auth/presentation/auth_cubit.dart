@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:glint/shared/services/sync_manager.dart';
@@ -7,6 +8,7 @@ import 'auth_state.dart';
 /// Se comunica con Supabase y actualiza el estado de la app.
 class AuthCubit extends Cubit<GlintAuthState> {
   final SupabaseClient _supabase;
+  StreamSubscription? _authSubscription;
 
   AuthCubit(this._supabase) : super(AuthInitial()) {
     // Al crear el cubit, verificar si ya hay sesión activa
@@ -150,7 +152,8 @@ class AuthCubit extends Cubit<GlintAuthState> {
   /// Escuchar cambios de sesión en tiempo real
   /// (útil cuando el usuario confirma su email y vuelve a la app)
   void listenToAuthChanges() {
-    _supabase.auth.onAuthStateChange.listen((data) {
+    _authSubscription?.cancel();
+    _authSubscription = _supabase.auth.onAuthStateChange.listen((data) {
       final session = data.session;
       if (session != null) {
         emit(AuthAuthenticated(session.user));
@@ -160,6 +163,12 @@ class AuthCubit extends Cubit<GlintAuthState> {
         emit(AuthUnauthenticated());
       }
     });
+  }
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
   }
 
   /// Traduce los mensajes de error de inglés a español

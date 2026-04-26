@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/finance/data/recurring_expense_repository.dart';
@@ -35,6 +36,7 @@ class RecurringExpenseLoaded extends RecurringExpenseState {
 class RecurringExpenseCubit extends Cubit<RecurringExpenseState> {
   final RecurringExpenseRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   RecurringExpenseCubit(this._repo, this._usuarioId)
       : super(RecurringExpenseLoading()) {
@@ -42,10 +44,17 @@ class RecurringExpenseCubit extends Cubit<RecurringExpenseState> {
   }
 
   void cargar() {
-    _repo.watchRecurrentes(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchRecurrentes(_usuarioId).listen(
       (lista) => emit(RecurringExpenseLoaded(lista)),
       onError: (_) => emit(RecurringExpenseLoaded([])),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 
   Future<void> crearGasto(

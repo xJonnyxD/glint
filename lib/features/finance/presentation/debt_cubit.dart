@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/finance/data/debt_repository.dart';
@@ -27,16 +28,24 @@ class DebtLoaded extends DebtState {
 class DebtCubit extends Cubit<DebtState> {
   final DebtRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   DebtCubit(this._repo, this._usuarioId) : super(DebtLoading()) {
     cargar();
   }
 
   void cargar() {
-    _repo.watchDeudas(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchDeudas(_usuarioId).listen(
       (lista) => emit(DebtLoaded(lista)),
       onError: (_) => emit(DebtLoaded([])),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 
   Future<void> crearDeuda(

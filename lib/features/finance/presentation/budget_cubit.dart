@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/finance/data/budget_repository.dart';
@@ -21,6 +22,7 @@ class BudgetLoaded extends BudgetState {
 class BudgetCubit extends Cubit<BudgetState> {
   final BudgetRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   BudgetCubit(this._repo, this._usuarioId) : super(BudgetLoading()) {
     cargar();
@@ -28,10 +30,17 @@ class BudgetCubit extends Cubit<BudgetState> {
 
   void cargar() {
     final ahora = DateTime.now();
-    _repo.watchBudgets(_usuarioId, ahora.month, ahora.year).listen(
+    _sub?.cancel();
+    _sub = _repo.watchBudgets(_usuarioId, ahora.month, ahora.year).listen(
       (lista) => emit(BudgetLoaded(lista, ahora.month, ahora.year)),
       onError: (_) => emit(BudgetLoaded([], ahora.month, ahora.year)),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 
   Future<void> crearPresupuesto(String categoria, double limite) async {

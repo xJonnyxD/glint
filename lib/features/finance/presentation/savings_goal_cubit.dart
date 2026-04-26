@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/finance/data/savings_goal_repository.dart';
@@ -19,16 +20,24 @@ class SavingsGoalLoaded extends SavingsGoalState {
 class SavingsGoalCubit extends Cubit<SavingsGoalState> {
   final SavingsGoalRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   SavingsGoalCubit(this._repo, this._usuarioId) : super(SavingsGoalLoading()) {
     cargar();
   }
 
   void cargar() {
-    _repo.watchMetas(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchMetas(_usuarioId).listen(
       (lista) => emit(SavingsGoalLoaded(lista)),
       onError: (_) => emit(SavingsGoalLoaded([])),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 
   Future<void> crearMeta(

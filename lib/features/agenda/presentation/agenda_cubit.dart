@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/agenda/data/event_repository.dart';
@@ -10,13 +11,15 @@ class AgendaCubit extends Cubit<AgendaState> {
   final String _usuarioId;
   DateTime _diaSeleccionado = DateTime.now();
   bool _notifsProgramadas = false;
+  StreamSubscription? _sub;
 
   AgendaCubit(this._repo, this._usuarioId) : super(AgendaLoading()) {
     cargarEventos();
   }
 
   void cargarEventos() {
-    _repo.watchEventos(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchEventos(_usuarioId).listen(
       (lista) {
         emit(AgendaLoaded(lista, _diaSeleccionado));
         if (!_notifsProgramadas) {
@@ -26,6 +29,12 @@ class AgendaCubit extends Cubit<AgendaState> {
       },
       onError: (_) => emit(AgendaLoaded([], _diaSeleccionado)),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 
   void seleccionarDia(DateTime dia) {
