@@ -64,3 +64,13 @@ lib/shared/di/injection_container.config.dart
 
 # VS Code launch config (contiene keys privadas)
 .vscode/launch.json
+
+# Claude Code workspace (LOCAL ONLY)
+.claude/
+.claude.json
+claude.json
+
+# IDE local config
+.idea/local.xml
+.vscode/settings.json
+.vscode/extensions.json
