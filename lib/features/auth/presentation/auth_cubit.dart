@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'auth_state.dart';
 
 /// AuthCubit — maneja toda la lógica de autenticación.
@@ -35,6 +36,8 @@ class AuthCubit extends Cubit<GlintAuthState> {
       );
       if (response.user != null) {
         emit(AuthAuthenticated(response.user!));
+        // Iniciar sincronización en background (sin esperar)
+        SyncManager.instance.sincronizarAlInicio(response.user!.id);
       } else {
         emit(AuthError('No se pudo iniciar sesión. Intenta de nuevo.'));
       }
@@ -72,6 +75,8 @@ class AuthCubit extends Cubit<GlintAuthState> {
       if (response.session != null && response.user != null) {
         // Supabase no requiere confirmación → sesión activa directamente
         emit(AuthAuthenticated(response.user!));
+        // Iniciar sincronización en background
+        SyncManager.instance.sincronizarAlInicio(response.user!.id);
       } else if (response.user != null) {
         // Supabase requiere confirmar email → emitir "no autenticado"
         // para que la pantalla muestre el mensaje de éxito en verde
@@ -149,6 +154,8 @@ class AuthCubit extends Cubit<GlintAuthState> {
       final session = data.session;
       if (session != null) {
         emit(AuthAuthenticated(session.user));
+        // Sincronizar datos cuando cambia la sesión
+        SyncManager.instance.sincronizarAlInicio(session.user.id);
       } else {
         emit(AuthUnauthenticated());
       }

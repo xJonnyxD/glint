@@ -35,6 +35,7 @@ import 'shared/di/app_router.dart';
 import 'shared/di/injection_container.dart';
 import 'shared/services/notification_service.dart';
 import 'shared/services/notification_handler.dart';
+import 'shared/services/sync_manager.dart';
 import 'shared/widgets/offline_banner.dart';
 
 Future<void> main() async {
@@ -74,6 +75,12 @@ Future<void> main() async {
 
   // Base de datos local Drift (singleton para toda la app)
   final appDatabase = AppDatabase();
+
+  // Inicializar SyncManager para sincronización con Supabase
+  SyncManager.initialize(
+    supabase: Supabase.instance.client,
+    db: appDatabase,
+  );
 
   runApp(GlintApp(appDatabase: appDatabase));
 }
