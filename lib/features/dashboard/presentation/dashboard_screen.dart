@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,7 @@ import 'package:glint/features/agenda/presentation/agenda_cubit.dart';
 import 'package:glint/features/agenda/presentation/agenda_state.dart';
 import 'package:glint/features/agenda/domain/event_entity.dart';
 import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
+import 'package:glint/features/profile/data/profile_settings.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -234,57 +236,103 @@ class DashboardScreen extends StatelessWidget {
                   try {
                     return BlocBuilder<GamificationCubit, GamificationState>(
                       builder: (context, gamState) {
-                        return Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return GestureDetector(
+                          onTap: () => context.push(AppRoutes.gamification),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colorScheme.primary,
+                                  colorScheme.tertiary,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(alpha: 0.35),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(18),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Text(gamState.emojiNivel,
-                                        style: const TextStyle(fontSize: 28)),
-                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Text(gamState.emojiNivel,
+                                          style: const TextStyle(fontSize: 26)),
+                                    ),
+                                    const SizedBox(width: 14),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(gamState.nivel,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 16)),
-                                          Text('${gamState.xpTotal} XP total',
-                                              style: TextStyle(
-                                                  fontSize: 13,
-                                                  color:
-                                                      Colors.grey.shade600)),
+                                          Text(
+                                            gamState.nivel,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 17,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${gamState.xpTotal} XP acumulados',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 13,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          context.push(AppRoutes.gamification),
-                                      child: const Text('Ver logros'),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'Ver logros →',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 14),
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(6),
                                   child: LinearProgressIndicator(
                                     value: gamState.progreso,
-                                    minHeight: 8,
+                                    minHeight: 10,
+                                    backgroundColor: Colors.white.withValues(alpha: 0.25),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
                                   gamState.xpParaSiguiente > 0
                                       ? '${gamState.xpParaSiguiente} XP para el siguiente nivel'
-                                      : '¡Nivel máximo! 👑',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey.shade500),
+                                      : '¡Nivel máximo alcanzado! 👑',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
@@ -340,11 +388,26 @@ class DashboardScreen extends StatelessWidget {
 
 // ── Header ─────────────────────────────────────────────────────────────────────
 
-class _Header extends StatelessWidget {
+class _Header extends StatefulWidget {
   final String saludo;
   final String fecha;
 
   const _Header({required this.saludo, required this.fecha});
+
+  @override
+  State<_Header> createState() => _HeaderState();
+}
+
+class _HeaderState extends State<_Header> {
+  String? _fotoPath;
+
+  @override
+  void initState() {
+    super.initState();
+    ProfileSettings.getFoto().then((p) {
+      if (mounted) setState(() => _fotoPath = p);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,17 +419,24 @@ class _Header extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             colorScheme.primary,
-            colorScheme.primary.withValues(alpha: 0.75),
+            colorScheme.tertiary.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
       child: BlocBuilder<AuthCubit, GlintAuthState>(
         builder: (context, authState) {
           String nombre = 'Usuario';
@@ -376,7 +446,8 @@ class _Header extends StatelessWidget {
             final meta = authState.user.userMetadata;
             final nombreMeta = meta?['nombre'] as String?;
             if (nombreMeta != null && nombreMeta.isNotEmpty) {
-              nombre = nombreMeta;
+              final primerNombre = nombreMeta.split(' ').first;
+              nombre = primerNombre;
               iniciales = nombreMeta
                   .split(' ')
                   .take(2)
@@ -390,61 +461,192 @@ class _Header extends StatelessWidget {
             }
           }
 
-          return Row(
+          return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Texto de saludo
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      saludo,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      nombre,
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 26,
-                          ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      fecha,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Avatar con iniciales → va a perfil
-              GestureDetector(
-                onTap: () => context.go(AppRoutes.profile),
-                child: CircleAvatar(
-                  radius: 26,
-                  backgroundColor: Colors.white.withValues(alpha: 0.25),
-                  child: Text(
-                    iniciales,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Texto de saludo
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.saludo,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          nombre,
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.calendar_today_outlined,
+                                size: 12, color: Colors.white60),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.fecha,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.white60,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
+
+                  // Avatar con foto o iniciales → va a perfil
+                  GestureDetector(
+                    onTap: () => context.go(AppRoutes.profile),
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white38, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            backgroundImage: (_fotoPath != null && _fotoPath!.isNotEmpty)
+                                ? FileImage(File(_fotoPath!))
+                                : null,
+                            child: (_fotoPath == null || _fotoPath!.isEmpty)
+                                ? Text(
+                                    iniciales,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 20,
+                                    ),
+                                  )
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.edit,
+                                size: 10, color: colorScheme.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+
+              const SizedBox(height: 20),
+
+              // ── Tira de actividad semanal ────────────────────────────────
+              _RachaSemanal(),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+// ── Tira de actividad semanal ─────────────────────────────────────────────────
+
+class _RachaSemanal extends StatelessWidget {
+  const _RachaSemanal();
+
+  static const _dias = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HabitCubit, HabitState>(
+      builder: (context, state) {
+        // Calcular qué días de la semana hubo actividad
+        final hoy = DateTime.now();
+        final inicioSemana = hoy.subtract(Duration(days: hoy.weekday - 1));
+
+        // Días activos: si el totalCompletados > 0 asumimos racha activa
+        // Simplificado: marcar hoy si hay completados, días anteriores con racha
+        final rachaActual = state is HabitLoaded && state.habitos.isNotEmpty
+            ? state.habitos.map((h) => h.rachaActual).fold(0, (a, b) => a > b ? a : b)
+            : 0;
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(7, (i) {
+            final esDia = DateTime(inicioSemana.year, inicioSemana.month,
+                inicioSemana.day + i);
+            final esHoy = i == hoy.weekday - 1;
+            final esPasado = esDia.isBefore(DateTime(hoy.year, hoy.month, hoy.day));
+            final enRacha = esPasado && i >= (hoy.weekday - 1 - rachaActual) && rachaActual > 0;
+            final activo = esHoy
+                ? (state is HabitLoaded && state.completadosHoy > 0)
+                : enRacha;
+
+            return Column(
+              children: [
+                Text(
+                  _dias[i],
+                  style: TextStyle(
+                    color: esHoy ? Colors.white : Colors.white54,
+                    fontSize: 10,
+                    fontWeight: esHoy ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: activo
+                        ? Colors.white
+                        : esHoy
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.12),
+                    border: esHoy
+                        ? Border.all(color: Colors.white70, width: 1.5)
+                        : null,
+                  ),
+                  child: Center(
+                    child: activo
+                        ? Icon(Icons.check_rounded,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary)
+                        : esHoy
+                            ? const Text('•',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16))
+                            : null,
+                  ),
+                ),
+              ],
+            );
+          }),
+        );
+      },
     );
   }
 }

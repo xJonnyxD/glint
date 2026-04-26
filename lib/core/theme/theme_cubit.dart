@@ -4,16 +4,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Colores de acento disponibles ─────────────────────────────────────────────
 const List<Map<String, String>> coloresAcento = [
-  {'nombre': 'Morado',  'hex': '#6750A4'}, // default Material 3
-  {'nombre': 'Azul',    'hex': '#1565C0'},
-  {'nombre': 'Verde',   'hex': '#2E7D32'},
-  {'nombre': 'Rosa',    'hex': '#AD1457'},
-  {'nombre': 'Naranja', 'hex': '#E65100'},
-  {'nombre': 'Teal',    'hex': '#00695C'},
-  {'nombre': 'Índigo',  'hex': '#283593'},
-  {'nombre': 'Rojo',    'hex': '#C62828'},
-  {'nombre': 'Café',    'hex': '#4E342E'},
-  {'nombre': 'Celeste', 'hex': '#0277BD'},
+  {'nombre': 'Morado',    'hex': '#6750A4'}, // default Material 3
+  {'nombre': 'Azul',      'hex': '#1565C0'},
+  {'nombre': 'Verde',     'hex': '#2E7D32'},
+  {'nombre': 'Rosa',      'hex': '#AD1457'},
+  {'nombre': 'Naranja',   'hex': '#E65100'},
+  {'nombre': 'Teal',      'hex': '#00695C'},
+  {'nombre': 'Índigo',    'hex': '#283593'},
+  {'nombre': 'Rojo',      'hex': '#C62828'},
+  {'nombre': 'Café',      'hex': '#4E342E'},
+  {'nombre': 'Celeste',   'hex': '#0277BD'},
+  {'nombre': 'Esmeralda', 'hex': '#00897B'},
+  {'nombre': 'Fucsia',    'hex': '#8E24AA'},
+  {'nombre': 'Lima',      'hex': '#558B2F'},
+  {'nombre': 'Coral',     'hex': '#D84315'},
+  {'nombre': 'Marino',    'hex': '#0D47A1'},
+  {'nombre': 'Dorado',    'hex': '#F57F17'},
+  {'nombre': 'Granate',   'hex': '#880E4F'},
+  {'nombre': 'Pizarra',   'hex': '#37474F'},
 ];
 
 // ── Claves de SharedPreferences ────────────────────────────────────────────────

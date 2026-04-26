@@ -9,6 +9,12 @@ import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart';
 import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
+import 'package:glint/features/habits/presentation/habit_cubit.dart';
+import 'package:glint/features/habits/presentation/habit_state.dart';
+import 'package:glint/features/finance/presentation/finance_cubit.dart';
+import 'package:glint/features/finance/presentation/finance_state.dart';
+import 'package:glint/features/routines/presentation/routine_cubit.dart';
+import 'package:glint/features/routines/presentation/routine_state.dart';
 import 'package:glint/features/profile/data/profile_settings.dart';
 import 'package:glint/shared/services/biometric_service.dart';
 
@@ -167,6 +173,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 16),
+
+                    // ── SECCIÓN: ESTADÍSTICAS PERSONALES ──────────────────
+                    _SectionHeader(title: 'Mi resumen'),
+                    _EstadisticasPersonales(),
+                    const SizedBox(height: 24),
 
                     // ── SECCIÓN: PERSONALIZACIÓN ───────────────────────────
                     _SectionHeader(title: 'Personalización'),
@@ -721,6 +732,160 @@ class _ProfileTile extends StatelessWidget {
               : null,
           onTap: onTap,
         ),
+      ),
+    );
+  }
+}
+
+// ── Estadísticas personales ───────────────────────────────────────────────────
+
+class _EstadisticasPersonales extends StatelessWidget {
+  const _EstadisticasPersonales();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: BlocBuilder<HabitCubit, HabitState>(
+                  builder: (context, state) {
+                    final total = state is HabitLoaded
+                        ? state.habitos.fold<int>(0, (s, h) => s + h.totalCompletados)
+                        : 0;
+                    final racha = state is HabitLoaded && state.habitos.isNotEmpty
+                        ? state.habitos.map((h) => h.rachaActual).reduce((a, b) => a > b ? a : b)
+                        : 0;
+                    return _StatCard(
+                      emoji: '🔥',
+                      valor: '$racha',
+                      label: 'Mejor racha',
+                      color: Colors.orange.shade600,
+                      bgColor: Colors.orange.shade50,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: BlocBuilder<HabitCubit, HabitState>(
+                  builder: (context, state) {
+                    final total = state is HabitLoaded
+                        ? state.habitos.fold<int>(0, (s, h) => s + h.totalCompletados)
+                        : 0;
+                    return _StatCard(
+                      emoji: '✅',
+                      valor: '$total',
+                      label: 'Hábitos hechos',
+                      color: Colors.green.shade600,
+                      bgColor: Colors.green.shade50,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: BlocBuilder<FinanceCubit, FinanceState>(
+                  builder: (context, state) {
+                    final balance = state is FinanceLoaded ? state.balance : 0.0;
+                    final positivo = balance >= 0;
+                    return _StatCard(
+                      emoji: positivo ? '💰' : '⚠️',
+                      valor: '\$${balance.abs().toStringAsFixed(0)}',
+                      label: positivo ? 'Balance mes' : 'Déficit mes',
+                      color: positivo ? Colors.teal.shade600 : Colors.red.shade600,
+                      bgColor: positivo ? Colors.teal.shade50 : Colors.red.shade50,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: BlocBuilder<RoutineCubit, RoutineState>(
+                  builder: (context, state) {
+                    final completadas = state is RoutineLoaded
+                        ? state.completadasHoy
+                        : 0;
+                    final total = state is RoutineLoaded
+                        ? state.rutinas.length
+                        : 0;
+                    return _StatCard(
+                      emoji: '☀️',
+                      valor: '$completadas/$total',
+                      label: 'Rutinas hoy',
+                      color: colorScheme.primary,
+                      bgColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String emoji;
+  final String valor;
+  final String label;
+  final Color color;
+  final Color bgColor;
+
+  const _StatCard({
+    required this.emoji,
+    required this.valor,
+    required this.label,
+    required this.color,
+    required this.bgColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 26)),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                valor,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: color.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
