@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Widget que implementa comportamiento de "double-tap para salir"
 /// - 1er tap: muestra mensaje "Presiona atrás de nuevo para salir"
@@ -32,10 +33,10 @@ class _BackButtonExitState extends State<BackButtonExit> {
 
         final now = DateTime.now();
 
-        // Si hace menos de 2 segundos que presionó atrás → salir
+        // Si hace menos de 2 segundos que presionó atrás → salir de la app
         if (_lastPopTime != null &&
             now.difference(_lastPopTime!) < const Duration(seconds: 2)) {
-          Navigator.of(context).pop();
+          SystemNavigator.pop(); // cierra la app correctamente en Android
           return;
         }
 

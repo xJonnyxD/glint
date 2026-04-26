@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:glint/core/utils/sv_salary_utils.dart';
 
 /// Pantalla de Calculadora de Salario para El Salvador 🇸🇻
@@ -54,7 +55,7 @@ class _SalaryCalculatorScreenState extends State<SalaryCalculatorScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: const Row(
           children: [
