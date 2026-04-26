@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:glint/features/gamification/presentation/gamification_cubit.dart';
 import 'package:glint/shared/services/achievement_service.dart';
@@ -14,7 +15,7 @@ class GamificationScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Mis Logros'),
-            leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+            leading: BackButton(onPressed: () => context.pop()),
           ),
           body: RefreshIndicator(
             onRefresh: () => context.read<GamificationCubit>().recargar(),
