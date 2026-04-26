@@ -257,105 +257,174 @@ class _DeudaCard extends StatelessWidget {
       },
       onDismissed: (_) => context.read<DebtCubit>().eliminar(deuda.id),
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color.withAlpha(26),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    deuda.tipo.emoji,
-                    style: const TextStyle(fontSize: 22),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      deuda.nombre,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(
-                            decoration: deuda.pagado
-                                ? TextDecoration.lineThrough
-                                : null,
-                            color: deuda.pagado
-                                ? colorScheme.onSurface.withAlpha(128)
-                                : null,
-                          ),
-                    ),
-                    Text(
-                      deuda.concepto,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: deuda.pagado
-                                ? colorScheme.onSurface.withAlpha(100)
-                                : null,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _fmtFecha.format(deuda.fecha),
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Text(
-                    _fmt.format(deuda.monto),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: deuda.pagado
-                              ? colorScheme.onSurface.withAlpha(128)
-                              : color,
-                          fontWeight: FontWeight.bold,
-                          decoration: deuda.pagado
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (!deuda.pagado)
-                    IconButton(
-                      icon: Icon(Icons.check_circle_outline, color: color),
-                      onPressed: () =>
-                          context.read<DebtCubit>().marcarPagado(deuda.id),
-                      tooltip: 'Marcar como pagado',
-                      visualDensity: VisualDensity.compact,
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withAlpha(26),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Pagado',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: color.withAlpha(26),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Text(
+                        deuda.tipo.emoji,
+                        style: const TextStyle(fontSize: 22),
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          deuda.nombre,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                decoration: deuda.pagado
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                                color: deuda.pagado
+                                    ? colorScheme.onSurface.withAlpha(128)
+                                    : null,
+                              ),
+                        ),
+                        Text(
+                          deuda.concepto,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: deuda.pagado
+                                    ? colorScheme.onSurface.withAlpha(100)
+                                    : null,
+                              ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _fmtFecha.format(deuda.fecha),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _fmt.format(deuda.monto),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: deuda.pagado
+                                  ? colorScheme.onSurface.withAlpha(128)
+                                  : color,
+                              fontWeight: FontWeight.bold,
+                              decoration: deuda.pagado
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (!deuda.pagado)
+                        IconButton(
+                          icon: Icon(Icons.check_circle_outline, color: color),
+                          onPressed: () =>
+                              context.read<DebtCubit>().marcarPagado(deuda.id),
+                          tooltip: 'Marcar como pagado',
+                          visualDensity: VisualDensity.compact,
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withAlpha(26),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'Pagado',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
+            ),
+            // Calculadora de proyección — solo para deudas no pagadas
+            if (!deuda.pagado)
+              _ProyeccionDeuda(monto: deuda.monto),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Proyección de pago de deuda ───────────────────────────────────────────────
+
+class _ProyeccionDeuda extends StatelessWidget {
+  final double monto;
+  const _ProyeccionDeuda({required this.monto});
+
+  Widget _proyeccion(BuildContext context) {
+    final cuotas = [
+      (monto * 0.10).roundToDouble(),
+      (monto * 0.15).roundToDouble(),
+      (monto * 0.20).roundToDouble(),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: cuotas.map((cuota) {
+          final meses = (monto / cuota).ceil();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_month_outlined, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  'Pagando \$${cuota.toStringAsFixed(0)}/mes → $meses ${meses == 1 ? 'mes' : 'meses'}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        leading: Icon(
+          Icons.calculate_outlined,
+          size: 18,
+          color: colorScheme.primary,
+        ),
+        title: Text(
+          '¿Cuándo termino de pagar?',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        children: [_proyeccion(context)],
       ),
     );
   }

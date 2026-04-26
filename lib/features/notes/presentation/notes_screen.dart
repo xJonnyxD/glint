@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:glint/features/notes/domain/note_entity.dart';
@@ -14,9 +15,11 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   bool _searchVisible = false;
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -118,8 +121,11 @@ class _NotesScreenState extends State<NotesScreen> {
             contentPadding: const EdgeInsets.symmetric(vertical: 0),
           ),
           onChanged: (v) {
-            context.read<NoteCubit>().buscar(v);
             setState(() {});
+            _debounce?.cancel();
+            _debounce = Timer(const Duration(milliseconds: 300), () {
+              context.read<NoteCubit>().buscar(v);
+            });
           },
         ),
       ),
@@ -457,6 +463,30 @@ class _NoteCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // Tags chips
+                    if (nota.tags.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: nota.tags
+                            .split(',')
+                            .map((t) => t.trim())
+                            .where((t) => t.isNotEmpty)
+                            .map((t) => Chip(
+                                  label: Text(t,
+                                      style: const TextStyle(fontSize: 11)),
+                                  padding: EdgeInsets.zero,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                  backgroundColor:
+                                      Colors.black.withValues(alpha: 0.08),
+                                  side: BorderSide.none,
+                                ))
+                            .toList(),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -635,6 +665,7 @@ class _NoteEditSheet extends StatefulWidget {
 class _NoteEditSheetState extends State<_NoteEditSheet> {
   late TextEditingController _tituloCtrl;
   late TextEditingController _contenidoCtrl;
+  late TextEditingController _tagsCtrl;
   late CategoriaNote _categoria;
   late String _color;
   late bool _esFijada;
@@ -648,6 +679,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
     final n = widget.nota;
     _tituloCtrl = TextEditingController(text: n?.titulo ?? '');
     _contenidoCtrl = TextEditingController(text: n?.contenido ?? '');
+    _tagsCtrl = TextEditingController(text: n?.tags ?? '');
     _categoria = n?.categoria ?? CategoriaNote.personal;
     _color = n?.color ?? '#FFF9C4';
     _esFijada = n?.esFijada ?? false;
@@ -665,6 +697,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
   void dispose() {
     _tituloCtrl.dispose();
     _contenidoCtrl.dispose();
+    _tagsCtrl.dispose();
     for (final c in _itemCtrlList) {
       c.dispose();
     }
@@ -706,6 +739,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
   Future<void> _guardar(BuildContext context) async {
     final titulo = _tituloCtrl.text.trim();
     final contenido = _contenidoCtrl.text.trim();
+    final tags = _tagsCtrl.text.trim();
     final items = _esChecklist ? _buildItems() : <ChecklistItem>[];
 
     if (titulo.isEmpty && contenido.isEmpty && items.every((i) => i.texto.isEmpty)) {
@@ -724,6 +758,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
           color: _color,
           esChecklist: _esChecklist,
           items: items,
+          tags: tags,
         );
       } else {
         await cubit.actualizarNota(widget.nota!.copyWith(
@@ -734,6 +769,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
           esFijada: _esFijada,
           esChecklist: _esChecklist,
           items: items,
+          tags: tags,
         ));
       }
       if (context.mounted) Navigator.pop(context);
@@ -833,6 +869,9 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
                     const SizedBox(height: 24),
                     // Categorías
                     _buildCategoriaSelector(),
+                    const SizedBox(height: 20),
+                    // Etiquetas
+                    _buildTagsField(),
                     const SizedBox(height: 20),
                     // Colores
                     _buildColorSelector(),
@@ -963,6 +1002,44 @@ class _NoteEditSheetState extends State<_NoteEditSheet> {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Tags Field ───
+
+  Widget _buildTagsField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Etiquetas',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black.withValues(alpha: 0.5),
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _tagsCtrl,
+          decoration: InputDecoration(
+            hintText: 'trabajo, personal, ideas',
+            hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
+            prefixIcon: const Icon(Icons.label_outline, color: Colors.black45),
+            filled: true,
+            fillColor: Colors.black.withValues(alpha: 0.06),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+          style: const TextStyle(fontSize: 14),
+          textCapitalization: TextCapitalization.none,
         ),
       ],
     );

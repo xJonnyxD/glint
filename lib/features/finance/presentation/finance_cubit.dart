@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/finance/data/transaction_repository.dart';
@@ -7,13 +8,15 @@ import 'finance_state.dart';
 class FinanceCubit extends Cubit<FinanceState> {
   final TransactionRepository _repo;
   final String _usuarioId;
+  StreamSubscription? _sub;
 
   FinanceCubit(this._repo, this._usuarioId) : super(FinanceLoading()) {
     cargarTransacciones();
   }
 
   void cargarTransacciones() {
-    _repo.watchMesActual(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchMesActual(_usuarioId).listen(
       (lista) => emit(FinanceLoaded(lista)),
       onError: (_) => emit(FinanceLoaded([])), // en web sin SQLite → lista vacía
     );
@@ -48,5 +51,11 @@ class FinanceCubit extends Cubit<FinanceState> {
 
   Future<void> eliminarTransaccion(String id) async {
     await _repo.eliminarTransaccion(id);
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 }

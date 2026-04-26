@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:glint/features/notes/data/note_repository.dart';
@@ -9,13 +10,15 @@ class NoteCubit extends Cubit<NoteState> {
   final NoteRepository _repo;
   final String _usuarioId;
   String _busqueda = '';
+  StreamSubscription? _sub;
 
   NoteCubit(this._repo, this._usuarioId) : super(NoteLoading()) {
     cargarNotas();
   }
 
   void cargarNotas() {
-    _repo.watchNotas(_usuarioId).listen(
+    _sub?.cancel();
+    _sub = _repo.watchNotas(_usuarioId).listen(
       (notas) => emit(NoteLoaded(notas, busqueda: _busqueda)),
       onError: (_) => emit(NoteLoaded([])),
     );
@@ -34,6 +37,7 @@ class NoteCubit extends Cubit<NoteState> {
     required String color,
     required bool esChecklist,
     List<ChecklistItem> items = const [],
+    String tags = '',
   }) async {
     final ahora = DateTime.now();
     final nota = NoteEntity(
@@ -48,6 +52,7 @@ class NoteCubit extends Cubit<NoteState> {
       usuarioId: _usuarioId,
       creadaEn: ahora,
       actualizadaEn: ahora,
+      tags: tags,
     );
     await _repo.crearNota(nota);
     await XpService.agregarXP(5, motivo: 'Nota creada: $titulo');
@@ -63,5 +68,11 @@ class NoteCubit extends Cubit<NoteState> {
 
   Future<void> eliminarNota(String id) async {
     await _repo.eliminarNota(id);
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
   }
 }

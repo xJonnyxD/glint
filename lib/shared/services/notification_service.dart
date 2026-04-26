@@ -102,6 +102,7 @@ class NotificationService {
         notificationLayout: NotificationLayout.Default,
         wakeUpScreen: true,
         category: NotificationCategory.Reminder,
+        payload: {'ruta': '/home/routines'},
       ),
       schedule: NotificationCalendar(
         hour: hh,
@@ -140,6 +141,7 @@ class NotificationService {
         notificationLayout: NotificationLayout.Default,
         wakeUpScreen: false,
         category: NotificationCategory.Reminder,
+        payload: {'ruta': '/home/habits'},
       ),
       schedule: NotificationCalendar(
         hour: hh,
@@ -181,6 +183,7 @@ class NotificationService {
         notificationLayout: NotificationLayout.Default,
         wakeUpScreen: true,
         category: NotificationCategory.Event,
+        payload: {'ruta': '/home/agenda'},
       ),
       schedule: NotificationCalendar.fromDate(
         date: fechaNotif,

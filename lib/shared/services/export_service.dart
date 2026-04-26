@@ -4,6 +4,7 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:glint/features/finance/domain/transaction_entity.dart';
+import 'package:glint/features/habits/domain/habit_entity.dart';
 
 /// Servicio para exportar transacciones financieras a CSV y compartirlas.
 /// Usa los paquetes `csv` y `share_plus`.
@@ -146,6 +147,61 @@ class ExportService {
     final ahora = DateTime.now();
     return '${ahora.year}${ahora.month.toString().padLeft(2, '0')}'
         '${ahora.day.toString().padLeft(2, '0')}';
+  }
+
+  // ── Exportar hábitos ───────────────────────────────────────────────────────
+
+  /// Exporta la lista de hábitos a CSV y abre el menú de compartir
+  static Future<ExportResult> exportarHabitosCSV({
+    required List<HabitEntity> habitos,
+  }) async {
+    try {
+      if (habitos.isEmpty) return ExportResult.vacio();
+
+      final filas = <List<dynamic>>[
+        [
+          'Nombre',
+          'Icono',
+          'Categoría',
+          'Frecuencia',
+          'Racha actual',
+          'Racha máxima',
+          'Total completados',
+          'Creado',
+        ],
+      ];
+
+      for (final h in habitos) {
+        filas.add([
+          h.nombre,
+          h.icono,
+          h.categoria.nombre,
+          h.frecuencia.nombre,
+          h.rachaActual,
+          h.rachaMaxima,
+          h.totalCompletados,
+          _formatearFecha(h.creadoEn),
+        ]);
+      }
+
+      final csv = const ListToCsvConverter().convert(filas);
+      final archivo = await _guardarArchivo(
+        csv,
+        'glint_habitos_${_fechaParaNombre()}.csv',
+      );
+      await Share.shareXFiles(
+        [XFile(archivo.path, mimeType: 'text/csv')],
+        subject: 'Mis hábitos Glint',
+        text: 'Reporte de ${habitos.length} hábitos exportado desde Glint 🎯\n'
+            'Generado el ${_formatearFecha(DateTime.now())}',
+      );
+      return ExportResult.exitoso(
+        totalRegistros: habitos.length,
+        rutaArchivo: archivo.path,
+      );
+    } catch (e) {
+      return ExportResult.error(e.toString());
+    }
   }
 }
 

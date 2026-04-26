@@ -344,6 +344,40 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
 
+                    // ── Botón OAuth Google — solo en login ───────────────────
+                    if (_modoLogin && !_modoReset) ...[
+                      const SizedBox(height: 16),
+                      const Row(children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'o continúa con',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ]),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Text(
+                            'G',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                          label: const Text('Continuar con Google'),
+                          onPressed: cargando
+                              ? null
+                              : () => context.read<AuthCubit>().signInWithGoogle(),
+                        ),
+                      ),
+                    ],
+
                     // ── Olvidé mi contraseña (solo en login) ─────────────────
                     if (_modoLogin && !_modoReset)
                       Align(

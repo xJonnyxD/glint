@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/core/theme/theme_cubit.dart';
+import 'package:glint/features/finance/presentation/finance_cubit.dart';
+import 'package:glint/features/finance/presentation/finance_state.dart';
+import 'package:glint/features/habits/presentation/habit_cubit.dart';
+import 'package:glint/features/habits/presentation/habit_state.dart';
+import 'package:glint/shared/services/export_service.dart';
 import 'package:glint/shared/services/notification_service.dart';
 
 /// Pantalla de Configuración real de Glint
@@ -142,6 +147,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _horaHabitos = nueva);
     if (_notifsHabitos) {
       await NotificationService.programarRecordatorioHabitos(hora: nueva);
+    }
+  }
+
+  Future<void> _exportarTransacciones() async {
+    if (!mounted) return;
+    final financeCubit = context.read<FinanceCubit>();
+    final financeState = financeCubit.state;
+    if (financeState is! FinanceLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cargando datos financieros...'),
+            behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    if (financeState.transacciones.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('No hay transacciones para exportar'),
+            behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    final resultado = await ExportService.exportarTransaccionesCSV(
+      transacciones: financeState.transacciones,
+    );
+    if (!mounted) return;
+    if (resultado.exitoso) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('✅ ${resultado.totalRegistros} transacciones exportadas'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else if (!resultado.estaVacio && resultado.mensajeError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Error: ${resultado.mensajeError}'),
+            behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  Future<void> _exportarHabitos() async {
+    if (!mounted) return;
+    final habitCubit = context.read<HabitCubit>();
+    final habitState = habitCubit.state;
+    if (habitState is! HabitLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Cargando hábitos...'),
+            behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    if (habitState.habitos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('No hay hábitos para exportar'),
+            behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    final resultado =
+        await ExportService.exportarHabitosCSV(habitos: habitState.habitos);
+    if (!mounted) return;
+    if (resultado.exitoso) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ ${resultado.totalRegistros} hábitos exportados'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else if (!resultado.estaVacio && resultado.mensajeError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Error: ${resultado.mensajeError}'),
+            behavior: SnackBarBehavior.floating),
+      );
     }
   }
 
@@ -443,6 +528,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           subtitle: const Text(
                               'Elimina preferencias y caché local (no afecta datos en la nube)'),
                           onTap: _borrarDatosLocales,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ── SECCIÓN: MIS DATOS ───────────────────────────────────────
+                _SectionHeader(title: 'Mis datos'),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Card(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.download_outlined,
+                              color: colorScheme.primary),
+                          title: const Text('Exportar transacciones'),
+                          subtitle: const Text(
+                              'Descarga tus finanzas en formato CSV'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _exportarTransacciones,
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: Icon(Icons.favorite_outline,
+                              color: colorScheme.primary),
+                          title: const Text('Exportar hábitos'),
+                          subtitle: const Text(
+                              'Descarga tus hábitos en formato CSV'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: _exportarHabitos,
                         ),
                       ],
                     ),

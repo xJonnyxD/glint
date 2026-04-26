@@ -125,6 +125,23 @@ class AuthCubit extends Cubit<GlintAuthState> {
     }
   }
 
+  /// Inicia sesión con Google via Supabase OAuth
+  Future<void> signInWithGoogle() async {
+    emit(AuthLoading());
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'sv.glint.app://login-callback/',
+      );
+      // La sesión se maneja en listenToAuthChanges()
+    } on AuthException catch (e) {
+      emit(AuthError(_traducirError(e.message)));
+    } catch (_) {
+      emit(AuthError('No se pudo conectar con Google'));
+    }
+  }
+
+
   /// Escuchar cambios de sesión en tiempo real
   /// (útil cuando el usuario confirma su email y vuelve a la app)
   void listenToAuthChanges() {

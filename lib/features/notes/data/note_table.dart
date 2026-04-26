@@ -13,6 +13,8 @@ class Notes extends Table {
   TextColumn get usuarioId => text()();
   DateTimeColumn get creadaEn => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get actualizadaEn => dateTime().withDefault(currentDateAndTime)();
+  // etiquetas separadas por coma: "trabajo,personal,ideas"
+  TextColumn get tags => text().withDefault(const Constant(''))();
 
   @override
   Set<Column> get primaryKey => {id};

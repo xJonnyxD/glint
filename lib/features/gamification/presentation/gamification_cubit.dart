@@ -64,20 +64,23 @@ class GamificationCubit extends Cubit<GamificationState> {
   }
 
   Future<void> cargar() async {
-    final xp = await XpService.getXP();
-    final historial = await XpService.getHistorial();
-    final prefs = await SharedPreferences.getInstance();
-    final logros = prefs.getStringList('glint_logros_desbloqueados') ?? [];
-
-    emit(state.copyWith(
-      xpTotal: xp,
-      nivel: XpService.getNombreNivel(xp),
-      emojiNivel: XpService.getEmojiNivel(xp),
-      xpParaSiguiente: XpService.xpParaSiguienteNivel(xp),
-      progreso: XpService.progresEnNivel(xp),
-      historial: historial,
-      logrosDesbloqueados: logros,
-    ));
+    try {
+      final xp = await XpService.getXP();
+      final historial = await XpService.getHistorial();
+      final prefs = await SharedPreferences.getInstance();
+      final logros = prefs.getStringList('glint_logros_desbloqueados') ?? [];
+      emit(state.copyWith(
+        xpTotal: xp,
+        nivel: XpService.getNombreNivel(xp),
+        emojiNivel: XpService.getEmojiNivel(xp),
+        xpParaSiguiente: XpService.xpParaSiguienteNivel(xp),
+        progreso: XpService.progresEnNivel(xp),
+        historial: historial,
+        logrosDesbloqueados: logros,
+      ));
+    } catch (_) {
+      // Si falla SharedPreferences, mantener estado inicial sin crashear
+    }
   }
 
   Future<void> recargar() => cargar();
