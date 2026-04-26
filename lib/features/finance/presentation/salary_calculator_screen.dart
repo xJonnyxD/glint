@@ -52,6 +52,10 @@ class _SalaryCalculatorScreenState extends State<SalaryCalculatorScreen> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Row(
           children: [
             Text('🇸🇻', style: TextStyle(fontSize: 20)),

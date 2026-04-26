@@ -37,6 +37,7 @@ import 'shared/services/notification_service.dart';
 import 'shared/services/notification_handler.dart';
 import 'shared/services/sync_manager.dart';
 import 'shared/widgets/offline_banner.dart';
+import 'shared/widgets/back_button_exit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,102 +103,105 @@ class GlintApp extends StatelessWidget {
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeSettings>(
-        builder: (context, themeState) => MaterialApp.router(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.buildLight(themeState.color),
-        darkTheme: AppTheme.buildDark(themeState.color),
-        themeMode: themeState.modo,
-        routerConfig: appRouter,
-        locale: const Locale('es', 'SV'),
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('es', 'SV'),
-          Locale('es'),
-          Locale('en'),
-        ],
-        // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
-        builder: (context, child) {
-          return OfflineBanner(
-            child: BlocConsumer<AuthCubit, GlintAuthState>(
-            listener: (context, authState) {
-              if (authState is AuthAuthenticated) {
-                NotificationService.solicitarPermisoAlIniciar();
-              }
+        builder: (context, themeState) => BackButtonExit(
+          child: MaterialApp.router(
+            title: AppConstants.appName,
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.buildLight(themeState.color),
+            darkTheme: AppTheme.buildDark(themeState.color),
+            themeMode: themeState.modo,
+            routerConfig: appRouter,
+            locale: const Locale('es', 'SV'),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('es', 'SV'),
+              Locale('es'),
+              Locale('en'),
+            ],
+            // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
+            builder: (context, child) {
+              return OfflineBanner(
+                child: BlocConsumer<AuthCubit, GlintAuthState>(
+                  listener: (context, authState) {
+                    if (authState is AuthAuthenticated) {
+                      NotificationService.solicitarPermisoAlIniciar();
+                    }
+                  },
+                  builder: (context, authState) {
+                    if (authState is AuthAuthenticated) {
+                      return MultiBlocProvider(
+                        providers: [
+                          BlocProvider<RoutineCubit>(
+                            create: (_) => RoutineCubit(
+                              RoutineRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<FinanceCubit>(
+                            create: (_) => FinanceCubit(
+                              TransactionRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<AgendaCubit>(
+                            create: (_) => AgendaCubit(
+                              EventRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<HabitCubit>(
+                            create: (_) => HabitCubit(
+                              HabitRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<NoteCubit>(
+                            create: (_) => NoteCubit(
+                              NoteRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<BudgetCubit>(
+                            create: (_) => BudgetCubit(
+                              BudgetRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<SavingsGoalCubit>(
+                            create: (_) => SavingsGoalCubit(
+                              SavingsGoalRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<DebtCubit>(
+                            create: (_) => DebtCubit(
+                              DebtRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<RecurringExpenseCubit>(
+                            create: (_) => RecurringExpenseCubit(
+                              RecurringExpenseRepository(appDatabase),
+                              authState.user.id,
+                            ),
+                          ),
+                          BlocProvider<GamificationCubit>(
+                            create: (_) => GamificationCubit(),
+                          ),
+                        ],
+                        child: child!,
+                      );
+                    }
+                    return child!;
+                  },
+                ),
+              );
             },
-            builder: (context, authState) {
-              if (authState is AuthAuthenticated) {
-                return MultiBlocProvider(
-                  providers: [
-                    BlocProvider<RoutineCubit>(
-                      create: (_) => RoutineCubit(
-                        RoutineRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<FinanceCubit>(
-                      create: (_) => FinanceCubit(
-                        TransactionRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<AgendaCubit>(
-                      create: (_) => AgendaCubit(
-                        EventRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<HabitCubit>(
-                      create: (_) => HabitCubit(
-                        HabitRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<NoteCubit>(
-                      create: (_) => NoteCubit(
-                        NoteRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<BudgetCubit>(
-                      create: (_) => BudgetCubit(
-                        BudgetRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<SavingsGoalCubit>(
-                      create: (_) => SavingsGoalCubit(
-                        SavingsGoalRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<DebtCubit>(
-                      create: (_) => DebtCubit(
-                        DebtRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<RecurringExpenseCubit>(
-                      create: (_) => RecurringExpenseCubit(
-                        RecurringExpenseRepository(appDatabase),
-                        authState.user.id,
-                      ),
-                    ),
-                    BlocProvider<GamificationCubit>(
-                      create: (_) => GamificationCubit(),
-                    ),
-                  ],
-                  child: child!,
-                );
-              }
-              return child!;
-            },
-          ));
-        },
+          ),
         ),
       ),
     );

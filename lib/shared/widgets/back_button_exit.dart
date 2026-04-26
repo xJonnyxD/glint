@@ -1,0 +1,49 @@
+import 'package:flutter/material.dart';
+
+/// Widget que implementa comportamiento de "double-tap para salir"
+/// - 1er tap: muestra mensaje "Presiona atrás de nuevo para salir"
+/// - 2do tap dentro de 2 segundos: sale de la app
+/// - Después de 2 segundos sin input: reinicia contador
+class BackButtonExit extends StatefulWidget {
+  final Widget child;
+
+  const BackButtonExit({super.key, required this.child});
+
+  @override
+  State<BackButtonExit> createState() => _BackButtonExitState();
+}
+
+class _BackButtonExitState extends State<BackButtonExit> {
+  DateTime? _lastPopTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        final now = DateTime.now();
+
+        // Si hace menos de 2 segundos que presionó atrás → salir
+        if (_lastPopTime != null &&
+            now.difference(_lastPopTime!) < const Duration(seconds: 2)) {
+          if (mounted) Navigator.of(context).pop();
+          return;
+        }
+
+        // Si es la primera vez o pasaron más de 2 segundos → mostrar mensaje
+        _lastPopTime = now;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Presiona atrás de nuevo para salir'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      child: widget.child,
+    );
+  }
+}
