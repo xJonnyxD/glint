@@ -1,0 +1,26 @@
+flutter_launcher_icons:
+  # Imagen fuente (1024x1024 PNG)
+  image_path: "assets/icons/icon.png"
+
+  # ── Android ──────────────────────────────────────────────────────────────────
+  android: true
+  # Ícono adaptativo para Android 8+ (el sistema redondea las esquinas).
+  # El fondo va en crema melocotón, el mismo de la paleta: el logo tiene un
+  # degradado claro y sobre el morado anterior aparecía un borde que lo cortaba.
+  adaptive_icon_background: "#FFF5EC"
+  adaptive_icon_foreground: "assets/icons/icon.png"
+  # Ícono monocromático para Android 13+ (modo oscuro del sistema)
+  adaptive_icon_monochrome: "assets/icons/icon.png"
+
+  # ── iOS ──────────────────────────────────────────────────────────────────────
+  ios: true
+  remove_alpha_ios: true   # iOS no permite canal alfa en el ícono
+
+  # ── Web ──────────────────────────────────────────────────────────────────────
+  # Sin esto, la web se quedaba con el favicon por defecto de Flutter: la efe
+  # azul que salía en la pestaña del navegador y al instalar la app.
+  web:
+    generate: true
+    image_path: "assets/icons/icon.png"
+    background_color: "#FFF5EC"
+    theme_color: "#705BFF"

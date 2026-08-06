@@ -1,0 +1,72 @@
+import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
+import 'package:glint/features/finance/data/savings_goal_repository.dart';
+import 'package:glint/features/finance/domain/savings_goal_entity.dart';
+
+// ── Estados ───────────────────────────────────────────────────────────────────
+
+abstract class SavingsGoalState {}
+
+class SavingsGoalLoading extends SavingsGoalState {}
+
+class SavingsGoalLoaded extends SavingsGoalState {
+  final List<SavingsGoalEntity> metas;
+  SavingsGoalLoaded(this.metas);
+}
+
+// ── Cubit ─────────────────────────────────────────────────────────────────────
+
+class SavingsGoalCubit extends Cubit<SavingsGoalState> {
+  final SavingsGoalRepository _repo;
+  final String _usuarioId;
+  StreamSubscription? _sub;
+
+  SavingsGoalCubit(this._repo, this._usuarioId) : super(SavingsGoalLoading()) {
+    cargar();
+  }
+
+  void cargar() {
+    _sub?.cancel();
+    _sub = _repo.watchMetas(_usuarioId).listen(
+      (lista) => emit(SavingsGoalLoaded(lista)),
+      onError: (_) => emit(SavingsGoalLoaded([])),
+    );
+  }
+
+  @override
+  Future<void> close() {
+    _sub?.cancel();
+    return super.close();
+  }
+
+  Future<void> crearMeta(
+    String nombre,
+    String emoji,
+    double montoMeta,
+    String color, {
+    DateTime? fechaMeta,
+  }) async {
+    final ahora = DateTime.now();
+    final meta = SavingsGoalEntity(
+      id: const Uuid().v4(),
+      nombre: nombre,
+      emoji: emoji,
+      montoMeta: montoMeta,
+      montoActual: 0,
+      fechaMeta: fechaMeta,
+      color: color,
+      usuarioId: _usuarioId,
+      creadoEn: ahora,
+    );
+    await _repo.crearMeta(meta);
+  }
+
+  Future<void> agregarAhorro(String id, double monto) async {
+    await _repo.agregarAhorro(id, monto);
+  }
+
+  Future<void> eliminar(String id) async {
+    await _repo.eliminarMeta(id);
+  }
+}

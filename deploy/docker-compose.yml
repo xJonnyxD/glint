@@ -1,0 +1,174 @@
+# Glint — stack de producción en yanessv (192.168.1.9)
+# Ubicación en el servidor: /home/jonny/glint/
+# Mismo patrón que vet y stjacks: Traefik (red traefik-public) + Cloudflare Tunnel.
+#
+# Cloudflare termina TLS y enruta glint.yanes.xyz -> localhost:80 -> Traefik.
+name: glint
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: glint-db
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1.5
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - glint-dbdata:/var/lib/postgresql/data
+      # Los .sql de esta carpeta se ejecutan al crear la base por primera vez
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+
+  # GoTrue — el servicio de auth de Supabase
+  auth:
+    image: supabase/gotrue:v2.185.0
+    container_name: glint-auth
+    restart: unless-stopped
+    mem_limit: 256m
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: https://glint.yanes.xyz
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: https://glint.yanes.xyz
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      # El registro sigue confirmándose solo (no exige correo para entrar), pero
+      # la RECUPERACIÓN de contraseña sí manda un email — para eso hace falta el
+      # SMTP de abajo. Si dejas los SMTP_* vacíos, el registro y el login siguen
+      # funcionando; solo el "olvidé mi contraseña" no enviará nada.
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      # ── SMTP (recuperación de contraseña) ─────────────────────────────────
+      # Rellena SMTP_* en ~/glint/.env con los datos de tu proveedor de correo.
+      # Con Resend, por ejemplo: host smtp.resend.com, puerto 587, usuario
+      # "resend" y contraseña = tu API key de Resend.
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS:-}
+      GOTRUE_SMTP_SENDER_NAME: "Glint"
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_FROM:-noreply@yanes.xyz}
+      GOTRUE_MAILER_URLPATHS_RECOVERY: "/reset"
+      # A dónde vuelve el enlace del correo de recuperación (la web de la app)
+      GOTRUE_URI_ALLOW_LIST: "sv.glint.app://login-callback/,sv.glint.app://reset/,https://glint.yanes.xyz,https://glint.yanes.xyz/app/"
+      # ── Google OAuth ("Continuar con Google") ─────────────────────────────
+      # Desactivado mientras GOOGLE_ENABLED no sea "true" en ~/glint/.env: si se
+      # habilita sin credenciales, GoTrue responde
+      # "Unsupported provider: provider is not enabled" a cada intento.
+      # Para activarlo: crear un OAuth Client (tipo "Web application") en Google
+      # Cloud Console con este redirect URI EXACTO
+      #     https://glint.yanes.xyz/auth/v1/callback
+      # y poner en ~/glint/.env (NO versionado):
+      #     GOOGLE_ENABLED=true
+      #     GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+      #     GOOGLE_SECRET=...
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET:-}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: https://glint.yanes.xyz/auth/v1/callback
+    networks: [internal]
+
+  # PostgREST — es lo que usa supabase_flutter para .from('habits')
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    container_name: glint-rest
+    restart: unless-stopped
+    mem_limit: 256m
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      # SEC-15: restringir CORS a nuestro origen (por defecto PostgREST permite
+      # cualquier origen). La web es mismo-origen y el móvil es nativo, así que
+      # no rompe nada; evita que un sitio malicioso use la API con el token de
+      # una víctima desde el navegador.
+      PGRST_SERVER_CORS_ALLOWED_ORIGINS: "https://glint.yanes.xyz"
+    networks: [internal]
+
+  # Realtime — websockets: empuja en vivo los cambios de la BD a los miembros
+  # de un grupo (gastos compartidos). Multi-tenant: el nginx de `api` reescribe
+  # el Host a "realtime-dev.*" para que resuelva el tenant que siembra
+  # SEED_SELF_HOST. Requiere wal_level=logical en la BD.
+  realtime:
+    image: supabase/realtime:v2.30.23
+    container_name: glint-realtime
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1.0
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "4000"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: ${DB_ENC_KEY}
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODE: "1@127.0.0.1"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+      RUN_JANITOR: "true"
+    command: >
+      sh -c "/app/bin/migrate &&
+             /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' &&
+             /app/bin/server"
+    networks: [internal]
+
+  # Gateway estilo Kong: expone /auth/v1, /rest/v1 y /realtime/v1 bajo el dominio
+  api:
+    image: nginx:1.27-alpine
+    container_name: glint-api
+    restart: unless-stopped
+    mem_limit: 128m
+    depends_on: [auth, rest, realtime]
+    volumes:
+      - ./glint-api.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [internal, traefik-public]
+
+  # Sirve el build web de Flutter (WebAssembly)
+  web:
+    image: nginx:1.27-alpine
+    container_name: glint-web
+    restart: unless-stopped
+    mem_limit: 128m
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./glint-web.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [traefik-public]
+
+networks:
+  internal:
+    name: glint-internal
+  traefik-public:
+    external: true
+
+volumes:
+  glint-dbdata:

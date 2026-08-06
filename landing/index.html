@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glint — Tu vida, organizada</title>
+<meta name="description" content="Glint reúne tus hábitos, finanzas, notas, agenda y rutinas en una sola app. Disponible para Android y desde el navegador.">
+<meta name="theme-color" content="#14121F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFF5EC" media="(prefers-color-scheme: light)">
+
+<meta property="og:title" content="Glint — Tu vida, organizada">
+<meta property="og:description" content="Hábitos, finanzas, notas, agenda y rutinas en una sola app.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://glint.yanes.xyz/">
+
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/icons/Icon-192.png">
+
+<style>
+  /* Paleta "Aurora" en oscuro (por defecto). Son los mismos tonos que AppColors
+     en la app, para que pasar de la web a /app/ no cambie de identidad, y todos
+     los pares texto/fondo pasan WCAG AA. */
+  :root {
+    --bg:         #14121F;  /* darkBackground */
+    --surface:    #1F1B2E;  /* darkSurface */
+    --surface-2:  #191527;
+    --brand:      #A98BFF;  /* lavanda aurora */
+    --accent:     #8FC2FF;  /* azul aurora */
+    --text:       #F4F1FF;
+    --muted:      #A9A3C7;
+    --divider:    #332C4D;
+    --sobre-cta:  #14121F;  /* texto oscuro sobre los botones claros */
+    --velo:       rgba(169, 139, 255, .18);
+    --radius:     28px;     /* esquinas generosas, como las tarjetas de la app */
+    --maxw:       1080px;
+
+    --dom-rutinas:  #818CF8;
+    --dom-habitos:  #10B981;
+    --dom-finanzas: #F59E0B;
+    --dom-agenda:   #60A5FA;
+    --dom-notas:    #C4B5FD;
+    --dom-logros:   #F472B6;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      /* En claro los acentos van en su versión profunda: los pasteles de la
+         paleta (lavanda #A98BFF, rosa #F59ACF) dan 2,7:1 y 2,0:1 con blanco, muy
+         por debajo del 4,5:1 que hace falta para poder leerlos en un botón. */
+      --bg:        #FFF5EC;  /* crema melocotón */
+      --surface:   #FFFFFF;
+      --surface-2: #FDF2F8;  /* rosado muy claro */
+      /* Un 4 % más oscuro que el #705BFF de la app: ese daba 4,22:1 sobre el
+         crema del fondo y hacía falta 4,5. A la vista es el mismo lavanda. */
+      --brand:     #6C57F5;
+      --accent:    #C01A76;  /* rosa legible */
+      --text:      #3B3B4A;
+      --muted:     #5F5F73;
+      --divider:   #E8E4FF;  /* lila muy claro */
+      --sobre-cta: #FFFFFF;
+      --velo:      rgba(112, 91, 255, .12);
+
+      --dom-rutinas:  #4338CA;
+      --dom-habitos:  #047857;
+      --dom-finanzas: #9A6100;
+      --dom-agenda:   #1D4ED8;
+      --dom-notas:    #6D28D9;
+      --dom-logros:   #BE185D;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    /* Plus Jakarta Sans es la fuente de la app; si el sistema no la tiene se
+       cae a un stack moderno legible. No se carga de un CDN a propósito
+       (la cabecera COEP del sitio bloquea recursos externos). */
+    font-family: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -.01em;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  svg { display: block; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ── Barra superior ───────────────────────────────────────────────── */
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--divider);
+  }
+  .nav { display: flex; align-items: center; gap: 16px; height: 68px; }
+  .logo { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 1.18rem; }
+  /* El logotipo de verdad, el mismo icono de la app. Antes era un cuadrado con
+     degradado y una chispa genérica dentro, que no es la marca. */
+  .logo-mark {
+    width: 36px; height: 36px; border-radius: 11px;
+    object-fit: cover; display: block;
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 35%, transparent);
+  }
+  .nav-links { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .nav-links a:not(.btn) { padding: 8px 14px; border-radius: 10px; color: var(--muted); font-size: .95rem; font-weight: 500; }
+  .nav-links a:not(.btn):hover { color: var(--text); background: var(--surface); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 13px 24px; border-radius: 13px;
+    font-weight: 600; font-size: 1rem; border: 1px solid transparent;
+    cursor: pointer; transition: transform .15s ease, box-shadow .2s ease, opacity .15s ease;
+  }
+  .btn svg { width: 18px; height: 18px; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand), var(--accent));
+    color: var(--sobre-cta);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--brand) 30%, transparent);
+  }
+  .btn-primary:hover { box-shadow: 0 12px 28px color-mix(in srgb, var(--brand) 40%, transparent); }
+  .btn-ghost { background: var(--surface); border-color: var(--divider); color: var(--text); }
+  .btn-sm { padding: 9px 17px; font-size: .93rem; }
+
+  /* ── Portada ──────────────────────────────────────────────────────── */
+  .hero { padding: 90px 0 76px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: -40% 0 auto 50%;
+    width: 820px; height: 820px; transform: translateX(-50%);
+    background: radial-gradient(circle, var(--velo), transparent 62%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
+  .hero-logo {
+    width: 120px; height: 120px; border-radius: 34px;
+    margin: 0 auto 26px; object-fit: cover; display: block;
+    box-shadow: 0 18px 50px color-mix(in srgb, var(--brand) 40%, transparent);
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 22px;
+    background: var(--surface); border: 1px solid var(--divider);
+    font-size: .84rem; color: var(--muted); font-weight: 500;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dom-habitos); }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 3.9rem); line-height: 1.1; margin: 0 0 18px; letter-spacing: -.03em; font-weight: 800; }
+  .grad { background: linear-gradient(135deg, var(--brand), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { font-size: clamp(1.05rem, 2.2vw, 1.24rem); color: var(--muted); max-width: 640px; margin: 0 auto 34px; }
+  .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .hero-note { margin-top: 20px; font-size: .88rem; color: var(--muted); }
+
+  /* ── Secciones ────────────────────────────────────────────────────── */
+  section { padding: 70px 0; }
+  h2 { font-size: clamp(1.7rem, 3.4vw, 2.2rem); margin: 0 0 10px; letter-spacing: -.025em; text-align: center; font-weight: 800; }
+  .section-sub { color: var(--muted); text-align: center; margin: 0 auto 44px; max-width: 560px; }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); }
+  .card {
+    background: var(--surface); border: 1px solid var(--divider);
+    border-radius: var(--radius); padding: 28px;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--divider)); transform: translateY(-4px); box-shadow: 0 16px 34px rgba(0,0,0,.14); }
+  .card .ico { width: 50px; height: 50px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 16px; }
+  .card .ico svg { width: 26px; height: 26px; }
+  .card h3 { margin: 0 0 7px; font-size: 1.15rem; font-weight: 700; }
+  .card p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  /* ── Descargas ────────────────────────────────────────────────────── */
+  #descargar { background: var(--surface-2); border-block: 1px solid var(--divider); }
+  .dl-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); max-width: 880px; margin: 0 auto; }
+  .dl { background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 32px 26px; text-align: center; }
+  .dl .plat { width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 16px; display: grid; place-items: center; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--brand); }
+  .dl .plat svg { width: 28px; height: 28px; }
+  .dl h3 { margin: 0 0 6px; font-size: 1.18rem; font-weight: 700; }
+  .dl p { color: var(--muted); font-size: .92rem; margin: 0 0 20px; min-height: 44px; }
+  .badge { display: inline-block; padding: 6px 13px; border-radius: 999px; font-size: .76rem; font-weight: 600; background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); border: 1px solid var(--divider); }
+  .install-help { max-width: 680px; margin: 34px auto 0; background: var(--surface); border: 1px solid var(--divider); border-radius: var(--radius); padding: 24px 26px; }
+  .install-help h4 { margin: 0 0 10px; font-size: 1rem; font-weight: 700; }
+  .install-help ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: .93rem; }
+  .install-help li { margin-bottom: 6px; }
+
+  /* ── Sobre el proyecto ────────────────────────────────────────────── */
+  .specs { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .spec {
+    background: var(--surface); border: 1px solid var(--divider);
+    border-radius: var(--radius); padding: 24px 26px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .spec-k { font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .spec-v { font-size: 1.12rem; font-weight: 700; color: var(--brand); }
+  .spec-d { font-size: .92rem; color: var(--muted); }
+
+  /* ── Privacidad ───────────────────────────────────────────────────── */
+  .privacy { max-width: 720px; margin: 0 auto; text-align: center; color: var(--muted); font-size: 1.05rem; }
+  .privacy strong { color: var(--text); }
+
+  footer { border-top: 1px solid var(--divider); padding: 34px 0; color: var(--muted); font-size: .89rem; }
+  .foot { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .foot a:hover { color: var(--text); }
+  .foot .right { margin-left: auto; display: flex; gap: 16px; }
+
+  /* ── Animación de entrada al hacer scroll ─────────────────────────── */
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+  .reveal.vis { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    .nav-links a.hide-sm { display: none; }
+    .hero { padding: 58px 0 50px; }
+    section { padding: 52px 0; }
+    .foot .right { margin-left: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo">
+      <img class="logo-mark" src="/favicon.png" alt="" width="36" height="36">
+      <span>Glint</span>
+    </div>
+    <nav class="nav-links">
+      <a class="hide-sm" href="#funciones">Funciones</a>
+      <a class="hide-sm" href="#descargar">Descargar</a>
+      <a class="hide-sm" href="#proyecto">El proyecto</a>
+      <a class="btn btn-primary btn-sm" href="/app/">Entrar</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <div class="hero wrap">
+    <img class="hero-logo reveal" src="/favicon.png" alt="Glint" width="120" height="120">
+    <span class="pill reveal"><span class="dot"></span> Gratis · Sin anuncios · Offline-first</span>
+    <h1 class="reveal">Tu vida,<br><span class="grad">organizada</span></h1>
+    <p class="lead reveal">
+      Hábitos, finanzas, notas, agenda y rutinas en una sola app.
+      Funciona sin conexión y sincroniza cuando vuelves a tener internet.
+    </p>
+    <div class="hero-cta reveal">
+      <a class="btn btn-primary" href="/app/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+        Abrir en el navegador
+      </a>
+      <a class="btn btn-ghost" href="#descargar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
+        Descargar para Android
+      </a>
+    </div>
+    <p class="hero-note reveal">Tus datos son tuyos — se guardan en tu dispositivo y en tu propio servidor.</p>
+  </div>
+
+  <section id="funciones" class="wrap">
+    <h2 class="reveal">Todo en un mismo lugar</h2>
+    <p class="section-sub reveal">
+      Seis módulos que trabajan juntos, en vez de seis apps que no se hablan entre sí.
+    </p>
+
+    <div class="grid">
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-habitos) 15%, transparent); color: var(--dom-habitos)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <h3>Hábitos</h3>
+        <p>Crea hábitos diarios o semanales, sigue tus rachas y mira tu progreso en un mapa de calor.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-finanzas) 15%, transparent); color: var(--dom-finanzas)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+        </div>
+        <h3>Finanzas</h3>
+        <p>Ingresos y gastos por categoría, presupuestos, metas de ahorro, deudas y gastos recurrentes.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-agenda) 15%, transparent); color: var(--dom-agenda)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18"/></svg>
+        </div>
+        <h3>Agenda</h3>
+        <p>Calendario de eventos con recordatorios que te avisan antes de que se te pase algo.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-rutinas) 15%, transparent); color: var(--dom-rutinas)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg>
+        </div>
+        <h3>Rutinas</h3>
+        <p>Arma tus rutinas de mañana, tarde y noche, y llévales seguimiento día a día.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-notas) 15%, transparent); color: var(--dom-notas)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14a1 1 0 0 1 1 1v11l-5 5H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M20 15h-5v5M8 8h8M8 12h5"/></svg>
+        </div>
+        <h3>Notas</h3>
+        <p>Notas con colores y etiquetas, con las importantes fijadas arriba y búsqueda rápida.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-logros) 15%, transparent); color: var(--dom-logros)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v4a6 6 0 0 1-12 0z"/><path d="M6 6H3.5a2.5 2.5 0 0 0 3 2.5M18 6h2.5a2.5 2.5 0 0 1-3 2.5M9 14.5h6M12 14.5V18M8.5 21h7l-.5-3h-6z"/></svg>
+        </div>
+        <h3>Logros</h3>
+        <p>Gana experiencia y sube de nivel conforme cumples. Mantener la constancia se siente bien.</p>
+      </article>
+
+      <article class="card reveal">
+        <div class="ico" style="background: color-mix(in srgb, var(--dom-finanzas) 15%, transparent); color: var(--dom-finanzas)" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9.5" r="2.4"/><path d="M17.5 14.5a4.6 4.6 0 0 1 4 5"/></svg>
+        </div>
+        <h3>Gastos compartidos</h3>
+        <p>Crea grupos con tus amigos, divide gastos y mira de un vistazo quién le debe a quién y cómo saldar todo con los mínimos pagos.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="descargar">
+    <div class="wrap">
+      <h2 class="reveal">Descarga Glint</h2>
+      <p class="section-sub reveal">Úsala desde el navegador o instálala en tu teléfono.</p>
+
+      <div class="dl-grid">
+        <div class="dl reveal">
+          <div class="plat" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5a15 15 0 0 1 0 19M12 2.5a15 15 0 0 0 0 19"/></svg>
+          </div>
+          <h3>Navegador</h3>
+          <p>Funciona en cualquier dispositivo, sin instalar nada.</p>
+          <a class="btn btn-primary" href="/app/">Abrir la app</a>
+        </div>
+
+        <div class="dl reveal">
+          <div class="plat" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5h12v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M6 9.5a6 6 0 0 1 12 0M9.5 5l-1.2-2M14.5 5l1.2-2M4 12v3.5M20 12v3.5M9.5 18.5V21M14.5 18.5V21"/></svg>
+          </div>
+          <h3>Android</h3>
+          <p>Archivo APK para instalar directamente en tu teléfono.</p>
+          <!-- APK_ANDROID: armar_sitio.dart sustituye este bloque por un aviso de
+               "Próximamente" si todavía no hay APK compilado. -->
+          <a class="btn btn-primary" href="/descargas/glint.apk" download>Descargar APK</a>
+          <!-- /APK_ANDROID -->
+        </div>
+
+        <div class="dl reveal">
+          <div class="plat" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M16.4 12.9c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8s-1.7-.8-2.9-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.7-.4 6.8 1.1 9 .7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.9.7 1.9-1.1 2.6-2.1c.8-1.2 1.2-2.3 1.2-2.4-.1 0-2.1-.8-2.1-3.1zM14.3 6.4c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z"/></svg>
+          </div>
+          <h3>iOS</h3>
+          <p>Mientras tanto, puedes añadir la versión web a tu pantalla de inicio desde Safari.</p>
+          <span class="badge">Próximamente</span>
+        </div>
+      </div>
+
+      <div class="install-help reveal">
+        <h4>Cómo instalar el APK en Android</h4>
+        <ol>
+          <li>Descarga el archivo y ábrelo desde la barra de notificaciones.</li>
+          <li>Android te avisará de que viene de fuera de Play Store: toca <em>Ajustes</em> y permite instalar de esta fuente.</li>
+          <li>Vuelve atrás y toca <em>Instalar</em>.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2 class="reveal">Tus datos, en tu servidor</h2>
+    <p class="privacy reveal">
+      Glint guarda todo <strong>en tu propio dispositivo</strong> y sincroniza contra
+      <strong>este servidor</strong>, no contra los de una empresa ajena. Cada cuenta solo
+      puede leer y escribir su propia información. Sin anuncios, sin rastreadores y sin
+      vender datos a nadie.
+    </p>
+  </section>
+
+  <section id="proyecto" class="wrap">
+    <h2 class="reveal">Sobre el proyecto</h2>
+    <p class="section-sub reveal">
+      Glint es un proyecto propio, hecho y alojado en casa. Esto es lo que hay por
+      debajo.
+    </p>
+
+    <div class="specs">
+      <div class="spec reveal">
+        <span class="spec-k">Aplicación</span>
+        <span class="spec-v">Flutter</span>
+        <span class="spec-d">Un mismo código para Android y para el navegador.</span>
+      </div>
+      <div class="spec reveal">
+        <span class="spec-k">Sin conexión</span>
+        <span class="spec-v">SQLite local</span>
+        <span class="spec-d">Todo se escribe primero en tu dispositivo; la nube va después.</span>
+      </div>
+      <div class="spec reveal">
+        <span class="spec-k">Servidor</span>
+        <span class="spec-v">PostgreSQL</span>
+        <span class="spec-d">Autoalojado, con permisos por fila para que nadie vea lo ajeno.</span>
+      </div>
+      <div class="spec reveal">
+        <span class="spec-k">En vivo</span>
+        <span class="spec-v">Websockets</span>
+        <span class="spec-d">Los cambios aparecen en tus otros dispositivos al momento.</span>
+      </div>
+      <div class="spec reveal">
+        <span class="spec-k">Accesibilidad</span>
+        <span class="spec-v">WCAG 2.1 AA</span>
+        <span class="spec-d">El contraste se comprueba de forma automática en cada cambio.</span>
+      </div>
+      <div class="spec reveal">
+        <span class="spec-k">Seguridad</span>
+        <span class="spec-v">Cifrado extremo a extremo en tránsito</span>
+        <span class="spec-d">Y desbloqueo con huella o rostro en el teléfono.</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© 2026 Glint</span>
+    <div class="right">
+      <a href="/app/">Entrar</a>
+      <a href="#descargar">Descargar</a>
+      <a href="https://github.com/xJonnyxD/glint" rel="noopener">Código fuente</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Revela los elementos .reveal cuando entran en pantalla (con escalonado leve).
+  (function () {
+    var els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('vis'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e, i) {
+        if (e.isIntersecting) {
+          var el = e.target;
+          setTimeout(function () { el.classList.add('vis'); }, (i % 3) * 80);
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+</body>
+</html>

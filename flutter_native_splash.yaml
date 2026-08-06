@@ -1,0 +1,27 @@
+# Splash nativo de Glint (pantalla de arranque con logo).
+#
+# Genera los recursos con:
+#   dart run flutter_native_splash:create
+#
+# El logo es el ícono de la app (assets/icons/icon.png). **Si cambia el ícono
+# hay que volver a generar esto**: los recursos del splash se quedaron una vez
+# con el logo anterior y al arrancar se veía el viejo un instante antes que el
+# nuevo.
+#
+# Los fondos siguen a AppColors: crema en claro y noche violácea en oscuro, para
+# que el arranque no parpadee al pasar el relevo a Flutter. El azul #0F172A que
+# había antes era de la paleta anterior.
+flutter_native_splash:
+  color: "#FFF5EC"       # AppColors.lightBackground
+  color_dark: "#14121F"  # AppColors.darkBackground
+  image: assets/icons/icon.png
+  # Android 12+ usa su propio API de splash: mismo fondo y logo.
+  android_12:
+    color: "#FFF5EC"
+    color_dark: "#14121F"
+    image: assets/icons/icon.png
+    icon_background_color: "#FFF5EC"
+    icon_background_color_dark: "#14121F"
+  android: true
+  ios: true
+  web: false # en web usamos la pantalla de carga de index.html

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Glint — hábitos, finanzas, notas, agenda y rutinas en una sola app.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Glint">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Glint</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!--
+    Nada de scripts externos aquí. La base de datos del navegador la maneja
+    Drift con sqlite3.wasm + drift_worker.js, servidos desde este mismo
+    dominio. (Antes se cargaba sql.js desde un CDN: era un resto de la
+    implementación antigua, ya no se usa y solo añadía una petición externa.)
+  -->
+
+  <!-- Pantalla de carga con marca: se muestra mientras baja el WASM (~11 MB)
+       y flutter_bootstrap.js la retira cuando la app ya está pintada. Sin
+       esto, el usuario ve una pantalla en blanco varios segundos. -->
+  <style>
+    /* Paleta Aurora. Estos valores replican a AppColors (dark/lightBackground)
+       a propósito: esta pantalla se ve justo antes de que Flutter pinte la
+       suya, y cualquier desfase se nota como un parpadeo de color al arrancar.
+       Si cambia la paleta, hay que cambiarlos aquí también. */
+    :root { --gsplash-bg:#14121F; --gsplash-fg:#F4F1FF; --gsplash-muted:#A9A3C7; }
+    @media (prefers-color-scheme: light) {
+      :root { --gsplash-bg:#FFF5EC; --gsplash-fg:#3B3B4A; --gsplash-muted:#5F5F73; }
+    }
+    #glint-splash {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; background: var(--gsplash-bg);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      transition: opacity .45s ease;
+    }
+    #glint-splash.glint-splash--oculto { opacity: 0; pointer-events: none; }
+    .glint-splash__logo {
+      width: 96px; height: 96px; border-radius: 28px;
+      display: block; object-fit: cover;
+      box-shadow: 0 12px 40px rgba(169,139,255,.35);
+      animation: glint-pulse 1.8s ease-in-out infinite;
+    }
+    .glint-splash__nombre {
+      font-size: 1.7rem; font-weight: 700; letter-spacing: -.02em;
+      background: linear-gradient(135deg, #4C8DFF, #8F7FFF, #F08CC8);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .glint-splash__spinner {
+      width: 26px; height: 26px; margin-top: 6px; border-radius: 50%;
+      border: 3px solid color-mix(in srgb, var(--gsplash-muted) 35%, transparent);
+      border-top-color: #705BFF; animation: glint-girar .8s linear infinite;
+    }
+    @keyframes glint-pulse {
+      0%,100% { transform: scale(1); } 50% { transform: scale(1.06); }
+    }
+    @keyframes glint-girar { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .glint-splash__logo, .glint-splash__spinner { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="glint-splash">
+    <!-- El logotipo de verdad. Antes había un emoji ✨ aquí: al recargar se veía
+         esa chispa sobre un degradado turquesa y, un instante después, el logo
+         real de la app, que es la transición fea que notaba el usuario. -->
+    <img class="glint-splash__logo" src="favicon.png" alt="Glint" width="96" height="96">
+    <div class="glint-splash__nombre">Glint</div>
+    <div class="glint-splash__spinner" role="progressbar" aria-label="Cargando"></div>
+  </div>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
