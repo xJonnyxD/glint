@@ -51,8 +51,10 @@ jobs:
       - run: flutter pub get
 
       # Las claves reales se guardan en Settings → Secrets and variables →
-      # Actions. Si no están definidas, se usan los valores por defecto del
-      # código y el build igual sirve para validar que compila.
+      # Actions. Ya no hay valores por defecto en el código (SEC-08): si los
+      # secrets faltan, el artefacto compila igual —sirve para validar que el
+      # código compila— pero al abrirlo aborta diciendo que le falta el
+      # backend, en vez de arrancar apuntando a un servidor que no es.
       - name: Compilar web (WebAssembly)
         run: |
           flutter build web --wasm --release \

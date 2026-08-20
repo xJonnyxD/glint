@@ -76,13 +76,21 @@ Future<void> main() async {
 
   await Hive.initFlutter();
 
-  if (AppConstants.supabaseUrl.isNotEmpty &&
-      AppConstants.supabaseAnonKey.isNotEmpty) {
-    await Supabase.initialize(
-      url: AppConstants.supabaseUrl,
-      anonKey: AppConstants.supabaseAnonKey,
+  // Sin backend la app NO arranca en modo local, aunque lo pareciera: unas
+  // líneas más abajo SyncManager, AuthCubit y media docena de pantallas piden
+  // `Supabase.instance` y reventarían con un "not initialized" que no dice
+  // de dónde viene. Mejor parar aquí explicando qué falta.
+  if (!AppConstants.hayBackend) {
+    throw StateError(
+      'Glint se compiló sin backend. Recompila pasando las dos claves:\n'
+      '  --dart-define=SUPABASE_URL=https://glint.yanes.xyz\n'
+      '  --dart-define=SUPABASE_ANON_KEY=<clave anon del servidor>',
     );
   }
+  await Supabase.initialize(
+    url: AppConstants.supabaseUrl,
+    anonKey: AppConstants.supabaseAnonKey,
+  );
 
   await configureDependencies();
 

@@ -6,22 +6,25 @@ abstract class AppConstants {
   static const String appLocale  = 'es_SV';
 
   // ── Supabase ───────────────────────────────────────────────────────────────
-  // Configurables en build/run con --dart-define, para poder apuntar a otro
-  // backend (ej. Supabase self-hosted en el servidor de producción) sin tocar
-  // código:
+  // El backend se inyecta SIEMPRE al compilar. Aquí no hay valor por defecto,
+  // y es a propósito:
   //   flutter build apk \
-  //     --dart-define=SUPABASE_URL=https://mi-servidor.com \
+  //     --dart-define=SUPABASE_URL=https://glint.yanes.xyz \
   //     --dart-define=SUPABASE_ANON_KEY=eyJ...
-  // Si no se pasan, se usan los valores de desarrollo por defecto.
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://glenycnniedmxwadilfd.supabase.co',
-  );
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsZW55Y25uaWVkbXh3YWRpbGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NzI3NjEsImV4cCI6MjA5MDU0ODc2MX0.opOPvu8LHlUhy09l_M_UpunGJdXOsdaFPFerPWTkWFs',
-  );
+  //
+  // Antes estaban aquí la URL y la clave anon de un proyecto Supabase alojado
+  // en la nube, distinto del servidor de producción. Cualquier build que se
+  // olvidara de los --dart-define arrancaba hablando con ESE backend sin decir
+  // nada —los datos del usuario acababan en un proyecto que no es el nuestro—
+  // y la clave no había forma de rotarla sin recompilar. Vacío, la falta de
+  // configuración se nota al arrancar, que es justo lo que se quiere.
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY');
+
+  /// `true` si la app se compiló con un backend configurado.
+  static bool get hayBackend =>
+      supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
   // ── Hive — nombres de boxes ────────────────────────────────────────────────
   static const String hiveBoxSettings    = 'glint_settings';
