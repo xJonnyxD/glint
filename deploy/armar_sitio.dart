@@ -160,14 +160,15 @@ void _versionarIconos(Directory site, Directory appDir, File favicon) {
   // replaceAllMapped y no replaceAll: en Dart, el reemplazo de `replaceAll`
   // es texto literal y no entiende los grupos $1, así que la sustitución se
   // quedaba sin hacer y los iconos seguían sin versionar.
-  String versionar(String html) => html
-      .replaceAllMapped(
-        RegExp(r'(href=")(/?)favicon\.png(\?v=[^"]*)?(")'),
-        (m) => '${m[1]}${m[2]}favicon.png?v=$v${m[4]}',
-      )
-      .replaceAllMapped(
-        RegExp(r'(href=")(icons/Icon-192\.png)(\?v=[^"]*)?(")'),
-        (m) => '${m[1]}${m[2]}?v=$v${m[4]}',
+  // Cubre href= y src=: la landing y la pantalla de carga pintan el logotipo
+  // con <img src="...Icon-512.png">, y esas referencias también se quedaban
+  // atrás en la caché del borde.
+  String versionar(String html) => html.replaceAllMapped(
+        RegExp(
+          r'((?:href|src)=")(/?)((?:icons/)?(?:favicon|Icon-[\w-]+)\.png)'
+          r'(\?v=[^"]*)?(")',
+        ),
+        (m) => '${m[1]}${m[2]}${m[3]}?v=$v${m[5]}',
       );
 
   for (final ruta in [
