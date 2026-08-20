@@ -120,19 +120,31 @@ class BackupService {
         final filas = (datos[tabla] as List?) ?? const [];
         for (final fila in filas) {
           final m = (fila as Map).cast<String, dynamic>();
-          final cols = m.keys.toList();
+          // `pendiente_sync` no viaja en la copia (es una marca interna), así
+          // que se pone aquí, fila a fila: lo restaurado tiene que volver a
+          // subir al servidor. Se filtra de las claves del archivo por si una
+          // copia antigua o retocada a mano la trae, o iría dos veces.
+          //
+          // Antes esto era un `UPDATE $tabla SET pendiente_sync = 1` al
+          // terminar cada tabla, SIN filtro: en un dispositivo donde hubiera
+          // iniciado sesión más de una cuenta, restaurar la copia de una
+          // marcaba también las filas de las demás y el sync intentaba
+          // subirlas con la sesión equivocada.
+          final cols = [
+            for (final k in m.keys)
+              if (!_columnasInternas.contains(k)) k,
+            'pendiente_sync',
+          ];
           final placeholders = List.filled(cols.length, '?').join(',');
           await db.customStatement(
             'INSERT OR REPLACE INTO $tabla (${cols.join(',')}) '
             'VALUES ($placeholders)',
-            [for (final c in cols) m[c]],
+            [for (final c in cols.take(cols.length - 1)) m[c], 1],
           );
           total++;
         }
         if (filas.isNotEmpty) {
-          // Marcar como pendiente para que la sincronización lo suba, y avisar
-          // a las pantallas que la tabla cambió.
-          await db.customStatement('UPDATE $tabla SET pendiente_sync = 1');
+          // Avisar a las pantallas de que la tabla cambió.
           db.notifyUpdates({TableUpdate(tabla, kind: UpdateKind.insert)});
         }
       }

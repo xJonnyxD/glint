@@ -61,4 +61,33 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('restaurar no marca como pendientes las filas de otra cuenta', () async {
+    // Dos cuentas han iniciado sesión en este mismo dispositivo.
+    await db.into(db.notes).insert(NotesCompanion.insert(
+        id: 'n1', titulo: 'De u1', usuarioId: 'u1'));
+    await db.into(db.notes).insert(NotesCompanion.insert(
+        id: 'n2', titulo: 'De u2', usuarioId: 'u2'));
+
+    // La nota de u2 ya está subida: no queda pendiente. Se marca igual que lo
+    // hace el motor de sync, con los triggers suprimidos.
+    await db.marcarSyncActivo(true);
+    await db.customStatement(
+        'UPDATE notes SET pendiente_sync = 0 WHERE id = ?', ['n2']);
+    await db.marcarSyncActivo(false);
+
+    final json = await BackupService.generarJson(db, 'u1');
+    expect(json.contains('De u2'), isFalse, reason: 'la copia es solo de u1');
+
+    await db.customStatement('DELETE FROM notes WHERE id = ?', ['n1']);
+    expect(await BackupService.restaurarDesdeJson(db, json), 1);
+
+    Future<Note> nota(String id) =>
+        (db.select(db.notes)..where((n) => n.id.equals(id))).getSingle();
+
+    expect((await nota('n1')).pendienteSync, isTrue,
+        reason: 'lo restaurado sí tiene que volver a subir');
+    expect((await nota('n2')).pendienteSync, isFalse,
+        reason: 'restaurar la copia de u1 no debe tocar las filas de u2');
+  });
 }
