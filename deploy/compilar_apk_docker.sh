@@ -80,6 +80,12 @@ if [ "${1:-}" = "--deploy" ]; then
   echo "→ Publicándolo en la web de descargas…"
   GLINT_ANON_KEY=$(ssh "$SERVIDOR" 'grep ^ANON_KEY= ~/glint/.env | cut -d= -f2-') \
     dart run deploy/armar_sitio.dart
-  rsync -avz --delete build/site/ "$SERVIDOR:~/glint/web/"
+  # Solo el APK y la landing que lo enlaza. Antes esto era un
+  # `rsync -avz --delete build/site/ → ~/glint/web/`, que arrasaba con /app/
+  # entero para republicar un APK: si el build de web de build/site/ no era el
+  # que está en producción, la app se sustituía por otra versión sin avisar.
+  # Y el --delete borraba lo que no viniera en build/site/.
+  scp -q build/site/descargas/glint.apk "$SERVIDOR:~/glint/web/descargas/glint.apk"
+  scp -q build/site/index.html "$SERVIDOR:~/glint/web/index.html"
   echo "Publicado en https://glint.yanes.xyz/descargas/glint.apk"
 fi

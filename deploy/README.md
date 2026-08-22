@@ -139,19 +139,33 @@ cloudflared tunnel route dns 973a9cc1-2a1e-4893-a53e-1d20899ed6a4 glint.yanes.xy
 Desde tu máquina, con las claves de tu servidor:
 
 ```bash
-flutter build web --wasm --release --base-href=/app/ --no-web-resources-cdn --dart-define=SUPABASE_URL=https://glint.yanes.xyz --dart-define=SUPABASE_ANON_KEY=TU_ANON_KEY
+flutter build web --wasm --release --base-href=/app/ --no-web-resources-cdn --dart-define=SUPABASE_URL=https://glint.yanes.xyz --dart-define=SUPABASE_ANON_KEY=TU_ANON_KEY --dart-define=GLINT_REALTIME=true
 dart run deploy/armar_sitio.dart
-rsync -avz --delete build/site/ jonny@192.168.1.9:~/glint/web/
+rsync -avz build/site/ jonny@192.168.1.9:~/glint/web/
 ```
 
-Los tres argumentos importan:
+En Git Bash hay que exportar antes `MSYS_NO_PATHCONV=1`, o `--base-href=/app/`
+se convierte en una ruta de Windows y el build falla.
+
+Los cuatro argumentos importan:
 
 - `--base-href=/app/` — sin esto la app busca sus assets en la raíz y no carga.
 - `--no-web-resources-cdn` — empaqueta CanvasKit y skwasm en el propio servidor
   en vez de descargarlos de `gstatic.com` en cada visita.
+- `--dart-define=GLINT_REALTIME=true` — enciende Realtime. Sin él,
+  `SyncManager` y `GroupRepository` se quedan en el sondeo de respaldo de 3
+  minutos y los grupos no se actualizan en vivo, aunque el contenedor
+  `glint-realtime` esté corriendo.
 - `armar_sitio.dart` — junta la landing con la app en `build/site/`, y si
   todavía no hay APK compilado cambia el botón de descarga por un aviso de
   "Próximamente" para que nunca lleve a un 404.
+
+**Nada de `--delete` en el rsync.** `build/site/` no siempre trae
+`descargas/glint.apk` —solo si acabas de compilar el APK—, así que un
+`rsync --delete` borra el APK publicado. Ya pasó: la web se quedó sirviendo un
+404 en la descarga y Cloudflare lo cacheó cuatro horas. Por la misma razón
+nunca hay que renombrar ni mover `~/glint/web/`: el bind mount de Docker sigue
+el inode, no la ruta, y el contenedor se queda sirviendo el directorio viejo.
 
 El contenedor `glint-web` monta esa carpeta como solo lectura, así que el
 despliegue se ve al instante — no hace falta reiniciar nada.
@@ -165,17 +179,21 @@ Requiere el SDK de Android y JDK 17 instalados (y aceptar las licencias de
 Google del SDK). Una vez listos:
 
 ```bash
-flutter build apk --release --dart-define=SUPABASE_URL=https://glint.yanes.xyz --dart-define=SUPABASE_ANON_KEY=TU_ANON_KEY
+flutter build apk --release --dart-define=SUPABASE_URL=https://glint.yanes.xyz --dart-define=SUPABASE_ANON_KEY=TU_ANON_KEY --dart-define=GLINT_REALTIME=true
 dart run deploy/armar_sitio.dart
-rsync -avz --delete build/site/ jonny@192.168.1.9:~/glint/web/
+rsync -avz build/site/ jonny@192.168.1.9:~/glint/web/
 ```
 
 `armar_sitio.dart` detecta el APK, lo copia a `/descargas/glint.apk` y activa
-el botón de descarga en la web con su tamaño.
+el botón de descarga en la web con su tamaño, con un `?v=<epoch>` en el enlace
+para que Cloudflare no siga sirviendo el APK anterior durante cuatro horas.
 
-La alternativa sin instalar nada en local es el workflow de GitHub Actions
-(`.github/workflows/ci.yml`), que ya compila el APK en cada push y lo deja como
-artefacto descargable.
+**La forma recomendada de sacar el APK es el workflow de GitHub Actions**
+(`.github/workflows/ci.yml`), que lo compila en cada push y lo deja como
+artefacto descargable. Compilarlo en el servidor de producción con
+`compilar_apk_docker.sh` ya no es buena idea: la máquina se reinicia sola bajo
+carga y se lleva por delante las seis apps que aloja. Compilarlo en Windows
+tampoco funciona — Gradle falla con "Unable to establish loopback connection".
 
 **iOS** necesita un Mac con Xcode para compilarse y una cuenta de Apple
 Developer para distribuirse; por eso la web lo anuncia como "Próximamente" y

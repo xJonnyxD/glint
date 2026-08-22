@@ -55,11 +55,25 @@ jobs:
       # secrets faltan, el artefacto compila igual —sirve para validar que el
       # código compila— pero al abrirlo aborta diciendo que le falta el
       # backend, en vez de arrancar apuntando a un servidor que no es.
+      #
+      # Los tres argumentos que no son claves tienen que ir aquí para que el
+      # artefacto sea desplegable tal cual, igual que el build de mano que
+      # documenta deploy/README.md:
+      #   --base-href=/app/        la app se sirve bajo /app/; sin esto busca
+      #                            sus assets en la raíz y no carga.
+      #   --no-web-resources-cdn   empaqueta CanvasKit y skwasm en el propio
+      #                            servidor en vez de tirar de gstatic.com.
+      #   GLINT_REALTIME=true      sin él SyncManager y GroupRepository dejan
+      #                            Realtime apagado y la frescura la da el
+      #                            sondeo de 3 minutos.
       - name: Compilar web (WebAssembly)
         run: |
           flutter build web --wasm --release \
+            --base-href=/app/ \
+            --no-web-resources-cdn \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --dart-define=GLINT_REALTIME=true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -87,11 +101,16 @@ jobs:
 
       - run: flutter pub get
 
+      # GLINT_REALTIME va aquí por la misma razón que en el build de web, y
+      # además porque este job es ahora la forma recomendada de sacar el APK
+      # —el servidor ya no aguanta compilarlo—: sin el flag saldría un APK
+      # PEOR que el que publica deploy/compilar_apk_docker.sh, que sí lo pasa.
       - name: Compilar APK
         run: |
           flutter build apk --release \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --dart-define=GLINT_REALTIME=true
 
       - uses: actions/upload-artifact@v4
         with:
