@@ -23,6 +23,11 @@ import 'package:glint/shared/services/biometric_service.dart';
 import 'package:glint/shared/widgets/avatar_glint.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
 
+/// Opción del menú de la foto de perfil. Es un enum (y no `ImageSource?`) para
+/// poder distinguir "eliminar" de "cerrar el menú": antes ambos devolvían
+/// `null`, así que descartar el menú tocando fuera borraba la foto sin querer.
+enum _AccionFoto { camara, galeria, eliminar }
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -32,7 +37,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _cambiarFoto(ProfileEntity perfil) async {
-    final opcion = await showModalBottomSheet<ImageSource>(
+    final accion = await showModalBottomSheet<_AccionFoto>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
@@ -41,34 +46,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
               title: const Text('Tomar foto'),
-              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              onTap: () => Navigator.pop(ctx, _AccionFoto.camara),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: const Text('Elegir de galería'),
-              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              onTap: () => Navigator.pop(ctx, _AccionFoto.galeria),
             ),
             if (perfil.tieneAvatar)
               ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Eliminar foto'),
-                onTap: () => Navigator.pop(ctx, null),
+                leading: Icon(Icons.delete_outline,
+                    color: Theme.of(ctx).colorScheme.error),
+                title: Text('Eliminar foto',
+                    style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+                onTap: () => Navigator.pop(ctx, _AccionFoto.eliminar),
               ),
           ],
         ),
       ),
     );
-    if (!mounted) return;
+    // Cerrar el menú (tocar fuera o atrás) devuelve null y NO hace nada: tocar
+    // la foto no debe borrarla, solo cambiarla o —si se elige— eliminarla.
+    if (!mounted || accion == null) return;
 
-    if (opcion == null) {
-      if (perfil.tieneAvatar) {
-        await context.read<ProfileCubit>().eliminarFoto();
-      }
+    if (accion == _AccionFoto.eliminar) {
+      await context.read<ProfileCubit>().eliminarFoto();
       return;
     }
 
     final picked = await ImagePicker().pickImage(
-      source: opcion,
+      source:
+          accion == _AccionFoto.camara ? ImageSource.camera : ImageSource.gallery,
       maxWidth: 512,
       maxHeight: 512,
       imageQuality: 85,
