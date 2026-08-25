@@ -53,39 +53,68 @@ on conflict (id) do update
        file_size_limit    = excluded.file_size_limit,
        allowed_mime_types = excluded.allowed_mime_types;
 
--- ── Quién puede escribir ────────────────────────────────────────────────────
--- Cada quien solo toca los archivos que cuelgan de su propia carpeta, que se
--- llama como su UUID: `avatares/<uid>/avatar.jpg`. `storage.foldername(name)`
--- devuelve el array de carpetas, así que el primer elemento es el dueño.
+-- ── Lectura y escritura ─────────────────────────────────────────────────────
+-- IMPORTANTE (aprendido a la mala): en este stack de storage-api, dentro del
+-- `WITH CHECK` de la RLS **ni `auth.uid()` ni la columna `owner` resuelven** el
+-- usuario (auth.uid() sale NULL; el owner no está disponible en ese punto). Por
+-- eso NO se puede meter el "solo tu carpeta" en el WITH CHECK: si se hace, toda
+-- subida se rechaza con "new row violates row-level security policy" y el bucket
+-- queda con 0 objetos aunque el cliente suba bien. La restricción de propiedad
+-- se hace con el TRIGGER de más abajo, que sí ve el `owner` fiable.
 --
--- Sin esto, cualquier sesión válida podría sobrescribir la foto de otro, que es
--- la misma clase de fallo que SEC-14 (membresía forzada): el servidor no puede
--- fiarse de que el cliente mande su propio id.
+-- Además, el upsert de storage-api es `insert ... on conflict do update
+-- returning *`, así que hacen falta las TRES políticas (insert, update y
+-- SELECT); sin la de SELECT, el `returning` se deniega y también falla.
 
-drop policy if exists "avatares: subir el propio" on storage.objects;
-create policy "avatares: subir el propio"
+-- Lectura pública (el bucket es público) y necesaria para el `returning`.
+drop policy if exists "avatares: ver" on storage.objects;
+create policy "avatares: ver"
+  on storage.objects for select to public
+  using (bucket_id = 'avatares');
+
+-- Escritura de cualquier sesión autenticada en el bucket (la carpeta se acota
+-- en el trigger).
+drop policy if exists "avatares: escribir autenticado" on storage.objects;
+create policy "avatares: escribir autenticado"
   on storage.objects for insert to authenticated
-  with check (
-    bucket_id = 'avatares'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  with check (bucket_id = 'avatares');
 
-drop policy if exists "avatares: reemplazar el propio" on storage.objects;
-create policy "avatares: reemplazar el propio"
+drop policy if exists "avatares: actualizar autenticado" on storage.objects;
+create policy "avatares: actualizar autenticado"
   on storage.objects for update to authenticated
-  using (
-    bucket_id = 'avatares'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  )
-  with check (
-    bucket_id = 'avatares'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  using (bucket_id = 'avatares')
+  with check (bucket_id = 'avatares');
 
-drop policy if exists "avatares: borrar el propio" on storage.objects;
-create policy "avatares: borrar el propio"
+drop policy if exists "avatares: borrar autenticado" on storage.objects;
+create policy "avatares: borrar autenticado"
   on storage.objects for delete to authenticated
-  using (
-    bucket_id = 'avatares'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+  using (bucket_id = 'avatares');
+
+-- Limpieza de las políticas viejas basadas en auth.uid() (por si se aplicó una
+-- versión anterior de este archivo).
+drop policy if exists "avatares: subir el propio" on storage.objects;
+drop policy if exists "avatares: reemplazar el propio" on storage.objects;
+drop policy if exists "avatares: borrar el propio" on storage.objects;
+
+-- ── Quién puede escribir en cada carpeta (la reja real) ─────────────────────
+-- `owner` lo rellena storage-api con el `sub` del JWT VERIFICADO, no con datos
+-- del cliente; y un trigger BEFORE sí lo ve (a diferencia del WITH CHECK). Así
+-- se garantiza que cada quien solo escribe bajo `avatares/<su-uid>/`: si alguien
+-- intenta subir a la carpeta de otro, su `owner` (su propio uid) no coincide con
+-- la carpeta y se rechaza. Es el equivalente a SEC-14 para Storage.
+create or replace function storage.avatares_dueno() returns trigger
+  language plpgsql as $func$
+begin
+  if NEW.bucket_id = 'avatares'
+     and (storage.foldername(NEW.name))[1] is distinct from NEW.owner::text then
+    raise exception 'avatares: solo puedes escribir en tu propia carpeta'
+      using errcode = '42501';
+  end if;
+  return NEW;
+end
+$func$;
+
+drop trigger if exists avatares_dueno on storage.objects;
+create trigger avatares_dueno
+  before insert or update on storage.objects
+  for each row execute function storage.avatares_dueno();
