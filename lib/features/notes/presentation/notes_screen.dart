@@ -41,7 +41,10 @@ class _NotesScreenState extends State<NotesScreen> {
     return Scaffold(
       body: BlocBuilder<NoteCubit, NoteState>(
         builder: (context, state) {
-          return CustomScrollView(
+          return RefreshIndicator(
+            onRefresh: () => SyncManager.instance.refrescar(),
+            child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               _buildAppBar(context, state),
               if (_searchVisible) _buildSearchBar(context),
@@ -54,6 +57,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   child: Center(child: Text('Error al cargar notas')),
                 ),
             ],
+          ),
           );
         },
       ),

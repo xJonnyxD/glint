@@ -237,6 +237,14 @@ class SyncManager {
     if (u != null) empujarEnSegundoPlano(u, incremental: incremental);
   }
 
+  /// Sincronización manual que se puede esperar (pull-to-refresh): al devolver
+  /// un Future, el `RefreshIndicator` mantiene el spinner hasta que termina.
+  Future<void> refrescar() async {
+    final u = _usuarioActual;
+    if (u == null) return;
+    await sincronizar(u);
+  }
+
   /// Detiene el ciclo periódico y la escucha Realtime (al cerrar sesión).
   void detener() {
     _periodico?.cancel();

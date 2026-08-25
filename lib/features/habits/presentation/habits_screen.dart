@@ -8,7 +8,9 @@ import 'package:glint/features/habits/data/habit_reminder_service.dart';
 import 'package:glint/features/habits/domain/habit_entity.dart';
 import 'package:glint/features/habits/presentation/habit_stats_sheet.dart';
 import 'package:glint/shared/services/achievement_service.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'package:glint/shared/widgets/aparecer.dart';
+import 'package:glint/shared/widgets/celebracion.dart';
 import 'package:glint/shared/widgets/estado_vacio.dart';
 import 'package:glint/shared/widgets/racha_fuego_badge.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
@@ -30,22 +32,40 @@ IconData iconoCategoria(CategoriaHabito c) {
 }
 
 /// Pantalla principal de Hábitos
-class HabitsScreen extends StatelessWidget {
+class HabitsScreen extends StatefulWidget {
   const HabitsScreen({super.key});
+
+  @override
+  State<HabitsScreen> createState() => _HabitsScreenState();
+}
+
+class _HabitsScreenState extends State<HabitsScreen> {
+  /// Recuerda si el día ya estaba completo, para celebrar solo en la
+  /// TRANSICIÓN (al marcar el último hábito) y no en cada reconstrucción.
+  bool _diaCompleto = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<HabitCubit, HabitState>(
       listener: (context, state) async {
-        // Verificar logros cada vez que cambia el estado
-        if (state is HabitLoaded) {
-          final nuevos = await AchievementService.verificarYDesbloquear(state);
-          if (context.mounted) {
-            for (final logro in nuevos) {
-              AchievementService.mostrarLogro(context, logro);
-            }
-          }
+        if (state is! HabitLoaded) return;
+
+        // Día perfecto: se acaba de completar el último hábito pendiente.
+        final ahoraCompleto = state.total > 0 && state.completadosHoy == state.total;
+        var celebrado = false;
+        if (ahoraCompleto && !_diaCompleto) {
+          Celebracion.lanzar();
+          celebrado = true;
         }
+        _diaCompleto = ahoraCompleto;
+
+        // Logros nuevos: banner + una celebración (si no se lanzó ya arriba).
+        final nuevos = await AchievementService.verificarYDesbloquear(state);
+        if (!context.mounted) return;
+        for (final logro in nuevos) {
+          AchievementService.mostrarLogro(context, logro);
+        }
+        if (nuevos.isNotEmpty && !celebrado) Celebracion.lanzar();
       },
       builder: (context, state) {
         if (state is HabitLoading) {
@@ -76,7 +96,10 @@ class _HabitsView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: CustomScrollView(
+      body: RefreshIndicator(
+        onRefresh: () => SyncManager.instance.refrescar(),
+        child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           // ── Header con progreso ──────────────────────────────────────────
           SliverAppBar(
@@ -115,6 +138,7 @@ class _HabitsView extends StatelessWidget {
           // Espacio para el FAB
           const SliverToBoxAdapter(child: SizedBox(height: 88)),
         ],
+        ),
       ),
 
       // ── Botón agregar hábito ─────────────────────────────────────────────

@@ -7,6 +7,7 @@ import 'package:glint/shared/widgets/aparecer.dart';
 import 'package:glint/shared/widgets/estado_vacio.dart';
 import 'package:glint/shared/widgets/racha_fuego_badge.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'routine_cubit.dart';
 import 'routine_state.dart';
 
@@ -64,7 +65,10 @@ class RoutinesScreen extends StatelessWidget {
 
   /// Vista con las rutinas agrupadas por período del día
   Widget _buildContenido(BuildContext context, RoutineLoaded state) {
-    return CustomScrollView(
+    return RefreshIndicator(
+      onRefresh: () => SyncManager.instance.refrescar(),
+      child: CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         // Barra de progreso del día
         SliverToBoxAdapter(
@@ -129,6 +133,7 @@ class RoutinesScreen extends StatelessWidget {
 
         const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
+      ),
     );
   }
 
