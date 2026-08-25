@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +32,7 @@ class DebtScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarFormulario(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Agregar'),
       ),
     );
@@ -238,7 +239,7 @@ class _DeudaCard extends StatelessWidget {
           color: colorScheme.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Icon(Icons.delete_outline, color: colorScheme.onError),
+        child: Icon(Symbols.delete_rounded, color: colorScheme.onError),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
@@ -336,7 +337,7 @@ class _DeudaCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       if (!deuda.pagado)
                         IconButton(
-                          icon: Icon(Icons.check_circle_outline, color: color),
+                          icon: Icon(Symbols.check_circle_rounded, color: color),
                           onPressed: () =>
                               context.read<DebtCubit>().marcarPagado(deuda.id),
                           tooltip: 'Marcar como pagado',
@@ -396,7 +397,7 @@ class _ProyeccionDeuda extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Row(
               children: [
-                const Icon(Icons.calendar_month_outlined, size: 14),
+                const Icon(Symbols.calendar_month_rounded, size: 14),
                 const SizedBox(width: 6),
                 Text(
                   'Pagando \$${cuota.toStringAsFixed(0)}/mes → $meses ${meses == 1 ? 'mes' : 'meses'}',
@@ -418,7 +419,7 @@ class _ProyeccionDeuda extends StatelessWidget {
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16),
         leading: Icon(
-          Icons.calculate_outlined,
+          Symbols.calculate_rounded,
           size: 18,
           color: colorScheme.primary,
         ),
@@ -511,7 +512,7 @@ class _DeudaSheetState extends State<_DeudaSheet> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Symbols.close_rounded),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -541,7 +542,7 @@ class _DeudaSheetState extends State<_DeudaSheet> {
                 controller: _nombreController,
                 decoration: const InputDecoration(
                   labelText: 'Nombre de la persona',
-                  prefixIcon: Icon(Icons.person_outline),
+                  prefixIcon: Icon(Symbols.person_rounded),
                 ),
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Ingresa el nombre' : null,
@@ -553,7 +554,7 @@ class _DeudaSheetState extends State<_DeudaSheet> {
                 controller: _conceptoController,
                 decoration: const InputDecoration(
                   labelText: 'Concepto (¿por qué?)',
-                  prefixIcon: Icon(Icons.description_outlined),
+                  prefixIcon: Icon(Symbols.description_rounded),
                 ),
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Ingresa el concepto' : null,
@@ -585,7 +586,7 @@ class _DeudaSheetState extends State<_DeudaSheet> {
               // Fecha
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const Icon(Symbols.calendar_today_rounded),
                 title: Text(_fmtFecha.format(_fecha)),
                 subtitle: const Text('Fecha de la deuda'),
                 onTap: _seleccionarFecha,

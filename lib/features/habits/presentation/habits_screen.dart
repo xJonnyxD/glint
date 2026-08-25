@@ -117,7 +117,7 @@ class _HabitsView extends StatelessWidget {
             actions: [
               // Botón para abrir estadísticas y logros
               IconButton(
-                icon: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+                icon: const Icon(Symbols.bar_chart_rounded, color: Colors.white),
                 tooltip: 'Estadísticas y logros',
                 onPressed: () => _mostrarEstadisticas(context, cubit),
               ),
@@ -144,7 +144,7 @@ class _HabitsView extends StatelessWidget {
       // ── Botón agregar hábito ─────────────────────────────────────────────
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarAgregarHabito(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Nuevo hábito'),
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
@@ -506,7 +506,7 @@ class _HabitCard extends StatelessWidget {
           color: colorScheme.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
+        child: const Icon(Symbols.delete_rounded, color: Colors.white, size: 28),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
@@ -630,7 +630,7 @@ class _HabitCard extends StatelessWidget {
 
               // Botón editar
               IconButton(
-                icon: Icon(Icons.edit_outlined,
+                icon: Icon(Symbols.edit_rounded,
                     size: 18, color: colorScheme.onSurface.withAlpha(160)),
                 tooltip: 'Editar hábito',
                 onPressed: () => onEditar(context),
@@ -654,7 +654,7 @@ class _HabitCard extends StatelessWidget {
                     ),
                   ),
                   child: completado
-                      ? const Icon(Icons.check,
+                      ? const Icon(Symbols.check_rounded,
                           color: Colors.white, size: 18)
                       : null,
                 ),
@@ -771,7 +771,7 @@ class _DetalleHabitoSheet extends StatelessWidget {
                 Navigator.pop(context);
               },
               icon: Icon(
-                  habito.completadoHoy ? Icons.close : Icons.check),
+                  habito.completadoHoy ? Symbols.close_rounded : Symbols.check_rounded),
               label: Text(habito.completadoHoy
                   ? 'Marcar como pendiente'
                   : '¡Completado hoy!'),
@@ -1064,12 +1064,12 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
                   ButtonSegment(
                     value: FrecuenciaHabito.diario,
                     label: Text('Diario'),
-                    icon: Icon(Icons.today),
+                    icon: Icon(Symbols.today_rounded),
                   ),
                   ButtonSegment(
                     value: FrecuenciaHabito.semanal,
                     label: Text('Semanal'),
-                    icon: Icon(Icons.date_range),
+                    icon: Icon(Symbols.date_range_rounded),
                   ),
                 ],
                 selected: {_frecuenciaSeleccionada},
@@ -1099,7 +1099,7 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.notifications_outlined,
+                      Icon(Symbols.notifications_rounded,
                           color: colorScheme.primary, size: 20),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1111,7 +1111,7 @@ class _AgregarHabitoSheetState extends State<_AgregarHabitoSheet> {
                       ),
                       if (_horaRecordatorio != null)
                         IconButton(
-                          icon: const Icon(Icons.close, size: 18),
+                          icon: const Icon(Symbols.close_rounded, size: 18),
                           visualDensity: VisualDensity.compact,
                           onPressed: () =>
                               setState(() => _horaRecordatorio = null),

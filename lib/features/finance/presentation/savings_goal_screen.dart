@@ -68,7 +68,7 @@ class SavingsGoalScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarFormulario(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Nueva meta'),
       ),
     );
@@ -175,7 +175,7 @@ class _MetaCard extends StatelessWidget {
           color: colorScheme.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Icon(Icons.delete_outline, color: colorScheme.onError),
+        child: Icon(Symbols.delete_rounded, color: colorScheme.onError),
       ),
       confirmDismiss: (_) async {
         return await showDialog<bool>(
@@ -309,7 +309,7 @@ class _MetaCard extends StatelessWidget {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () => _mostrarAbonar(context),
-                    icon: const Icon(Icons.savings_outlined, size: 18),
+                    icon: const Icon(Symbols.savings_rounded, size: 18),
                     label: const Text('Abonar'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: color,
@@ -447,7 +447,7 @@ class _NuevaMetaSheetState extends State<_NuevaMetaSheet> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Symbols.close_rounded),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -538,7 +538,7 @@ class _NuevaMetaSheetState extends State<_NuevaMetaSheet> {
               // Fecha límite (opcional)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today_outlined),
+                leading: const Icon(Symbols.calendar_today_rounded),
                 title: Text(
                   _fechaMeta == null
                       ? 'Fecha límite (opcional)'
@@ -546,7 +546,7 @@ class _NuevaMetaSheetState extends State<_NuevaMetaSheet> {
                 ),
                 trailing: _fechaMeta != null
                     ? IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Symbols.close_rounded),
                         onPressed: () => setState(() => _fechaMeta = null),
                       )
                     : null,
@@ -582,7 +582,7 @@ class _NuevaMetaSheetState extends State<_NuevaMetaSheet> {
                             : null,
                       ),
                       child: seleccionado
-                          ? const Icon(Icons.check, color: Colors.white, size: 20)
+                          ? const Icon(Symbols.check_rounded, color: Colors.white, size: 20)
                           : null,
                     ),
                   );

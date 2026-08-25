@@ -23,7 +23,7 @@ class RoutinesScreen extends StatelessWidget {
         actions: [
           // Botón para agregar rutina nueva
           IconButton(
-            icon: const Icon(Icons.add_circle_outline),
+            icon: const Icon(Symbols.add_circle_rounded),
             onPressed: () => _mostrarAgregarRutina(context),
             tooltip: 'Agregar rutina',
           ),
@@ -57,7 +57,7 @@ class RoutinesScreen extends StatelessWidget {
       subtitulo: 'Crea tu primera rutina para empezar\ntu día con intención',
       accion: FilledButton.icon(
         onPressed: () => _mostrarAgregarRutina(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Crear primera rutina'),
       ),
     );
@@ -296,7 +296,7 @@ class _RutinaCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 12,
+                  Icon(Symbols.schedule_rounded, size: 12,
                       color: colorScheme.onSurface.withAlpha(128)),
                   const SizedBox(width: 4),
                   Text(
@@ -318,7 +318,7 @@ class _RutinaCard extends StatelessWidget {
             children: [
               // Botón editar
               IconButton(
-                icon: Icon(Icons.edit_outlined,
+                icon: Icon(Symbols.edit_rounded,
                     size: 18, color: colorScheme.onSurface.withAlpha(160)),
                 tooltip: 'Editar rutina',
                 onPressed: onEditar,
@@ -344,7 +344,7 @@ class _RutinaCard extends StatelessWidget {
                     ),
                   ),
                   child: rutina.completadaHoy
-                      ? Icon(Icons.check, size: 18, color: colorScheme.onPrimary)
+                      ? Icon(Symbols.check_rounded, size: 18, color: colorScheme.onPrimary)
                       : null,
                 ),
               ),
@@ -455,7 +455,7 @@ class _AgregarRutinaSheetState extends State<_AgregarRutinaSheet> {
               decoration: const InputDecoration(
                 labelText: 'Nombre de la rutina',
                 hintText: 'ej: Ejercicio, Meditación...',
-                prefixIcon: Icon(Icons.edit_outlined),
+                prefixIcon: Icon(Symbols.edit_rounded),
               ),
               textCapitalization: TextCapitalization.sentences,
               validator: (v) =>
@@ -640,7 +640,7 @@ class _EstadisticasRutinas extends StatelessWidget {
                 child: _MetricaRutina(
                   valor: '${state.completadasHoy}/${rutinas.length}',
                   label: 'Hoy',
-                  icon: Icons.today_outlined,
+                  icon: Symbols.today_rounded,
                 ),
               ),
               const SizedBox(width: 10),
@@ -648,7 +648,7 @@ class _EstadisticasRutinas extends StatelessWidget {
                 child: _MetricaRutina(
                   valor: '$mejorRacha',
                   label: 'Mejor racha',
-                  icon: Icons.local_fire_department_outlined,
+                  icon: Symbols.local_fire_department_rounded,
                 ),
               ),
               const SizedBox(width: 10),
@@ -656,7 +656,7 @@ class _EstadisticasRutinas extends StatelessWidget {
                 child: _MetricaRutina(
                   valor: '$promedio',
                   label: 'Racha media',
-                  icon: Icons.trending_up,
+                  icon: Symbols.trending_up_rounded,
                 ),
               ),
             ],

@@ -55,7 +55,7 @@ class _SalaryCalculatorScreenState extends State<SalaryCalculatorScreen> {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Symbols.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
         title: const Row(
@@ -107,8 +107,8 @@ class _SalaryCalculatorScreenState extends State<SalaryCalculatorScreen> {
                       setState(() => _mostrarDetalle = !_mostrarDetalle),
                   icon: Icon(
                     _mostrarDetalle
-                        ? Icons.expand_less
-                        : Icons.expand_more,
+                        ? Symbols.expand_less_rounded
+                        : Symbols.expand_more_rounded,
                   ),
                   label: Text(
                     _mostrarDetalle ? 'Ocultar detalle' : 'Ver detalle',
@@ -797,7 +797,7 @@ class _NotasLegales extends StatelessWidget {
           Row(
             children: [
               Icon(
-                Icons.info_outline,
+                Symbols.info_rounded,
                 size: 16,
                 color: colorScheme.onSurface.withAlpha(150),
               ),

@@ -129,7 +129,7 @@ class DashboardScreen extends StatelessWidget {
                                 : rachas.fold(0, (a, b) => a + b) ~/ routineState.rutinas.length;
                             return _TarjetaProgreso(
                               titulo: 'Rutinas',
-                              icono: Icons.wb_sunny,
+                              icono: Symbols.wb_sunny_rounded,
                               color: colorScheme.primary,
                               progreso: routineState.progresoDia,
                               completadas: routineState.completadasHoy,
@@ -140,7 +140,7 @@ class DashboardScreen extends StatelessWidget {
                           if (routineState is RoutineError) {
                             return _TarjetaProgreso(
                               titulo: 'Rutinas',
-                              icono: Icons.wb_sunny,
+                              icono: Symbols.wb_sunny_rounded,
                               color: colorScheme.primary,
                               progreso: 0,
                               completadas: 0,
@@ -170,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
                                 : rachas.fold(0, (a, b) => a + b) ~/ habitState.habitos.length;
                             return _TarjetaProgreso(
                               titulo: 'Hábitos',
-                              icono: Icons.favorite,
+                              icono: Symbols.favorite_rounded,
                               color: Colors.pinkAccent,
                               progreso: habitState.progresoDia,
                               completadas: habitState.completadosHoy,
@@ -512,7 +512,7 @@ class _HeaderState extends State<_Header> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today_outlined,
+                            const Icon(Symbols.calendar_today_rounded,
                                 size: 12, color: Colors.white60),
                             const SizedBox(width: 4),
                             Text(
@@ -576,7 +576,7 @@ class _HeaderState extends State<_Header> {
                               color: Colors.white,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.edit,
+                            child: Icon(Symbols.edit_rounded,
                                 size: 10, color: colorScheme.primary),
                           ),
                         ),
@@ -659,7 +659,7 @@ class _RachaSemanal extends StatelessWidget {
                   ),
                   child: Center(
                     child: activo
-                        ? Icon(Icons.check_rounded,
+                        ? Icon(Symbols.check_rounded,
                             size: 14,
                             color: Theme.of(context).colorScheme.primary)
                         : esHoy
@@ -802,7 +802,7 @@ class _TarjetaFinanciera extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.account_balance_wallet,
+                    Icon(Symbols.account_balance_wallet_rounded,
                         color: colorScheme.primary, size: 20),
                     const SizedBox(width: 8),
                     // Expanded y no Spacer: con Spacer la fila se pasaba del
@@ -854,7 +854,7 @@ class _TarjetaFinanciera extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _FilaFinanciera(
-                        icono: Icons.arrow_downward,
+                        icono: Symbols.arrow_downward_rounded,
                         color: Colors.green.shade600,
                         label: 'Ingresos',
                         // Tapar solo el balance no serviría de nada: con los
@@ -866,7 +866,7 @@ class _TarjetaFinanciera extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _FilaFinanciera(
-                        icono: Icons.arrow_upward,
+                        icono: Symbols.arrow_upward_rounded,
                         color: Colors.red.shade600,
                         label: 'Gastos',
                         monto: PrivacidadSaldo.instancia
@@ -1157,7 +1157,7 @@ class _ProximosEventos extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Row(
             children: [
-              Icon(Icons.event_available_outlined,
+              Icon(Symbols.event_available_rounded,
                   color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
               const SizedBox(width: 12),
               Text(
@@ -1195,7 +1195,7 @@ class _ProximosEventos extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  esTarea ? Icons.check_circle_outline : Icons.event_outlined,
+                  esTarea ? Symbols.check_circle_rounded : Symbols.event_rounded,
                   color: colorEvento,
                   size: 20,
                 ),
@@ -1323,7 +1323,7 @@ class _TarjetaGrupos extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.primary,
                           )),
-                  const Icon(Icons.chevron_right, size: 18),
+                  const Icon(Symbols.chevron_right_rounded, size: 18),
                 ],
               ),
               const SizedBox(height: 12),

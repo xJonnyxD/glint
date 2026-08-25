@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 
 import 'package:glint/core/theme/app_colors.dart';
@@ -37,7 +38,7 @@ class MemberAvatar extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: esVirtual
-          ? Icon(Icons.person_outline, size: radio, color: onColor)
+          ? Icon(Symbols.person_rounded, size: radio, color: onColor)
           : Text(
               _iniciales(nombre),
               style: TextStyle(

@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -264,7 +265,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             DropdownButtonFormField<String>(
               initialValue: _pagadoPor,
               decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.account_circle_outlined),
+                prefixIcon: Icon(Symbols.account_circle_rounded),
               ),
               items: [
                 for (final m in miembros)
@@ -306,7 +307,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today_outlined),
+              leading: const Icon(Symbols.calendar_today_rounded),
               title: Text(_fmtFecha.format(_fecha)),
               subtitle: const Text('Fecha del gasto'),
               onTap: _seleccionarFecha,
@@ -315,7 +316,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
             FilledButton.icon(
               onPressed: _guardar,
-              icon: const Icon(Icons.check),
+              icon: const Icon(Symbols.check_rounded),
               label: Text(_esEdicion ? 'Guardar cambios' : 'Guardar gasto'),
             ),
           ],

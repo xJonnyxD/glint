@@ -86,7 +86,7 @@ class _LiquidacionCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Icon(Icons.arrow_forward, size: 18, color: cs.primary),
+                        child: Icon(Symbols.arrow_forward_rounded, size: 18, color: cs.primary),
                       ),
                       Text(s.aNombre,
                           style: Theme.of(context).textTheme.titleMedium),

@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:glint/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -200,7 +201,7 @@ class _LogroCard extends StatelessWidget {
                   bottom: 0,
                   right: 0,
                   child: Icon(
-                    Icons.lock_outline,
+                    Symbols.lock_rounded,
                     size: 16,
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -255,7 +256,7 @@ class _RankingSection extends StatelessWidget {
             const Spacer(),
             TextButton.icon(
               onPressed: () => context.push('/home/groups/friends'),
-              icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+              icon: const Icon(Symbols.person_add_rounded, size: 18),
               label: const Text('Amigos'),
             ),
           ],
@@ -379,7 +380,7 @@ class _HistorialSection extends StatelessWidget {
                   vertical: 4,
                 ),
                 leading: const Icon(
-                  Icons.star_rounded,
+                  Symbols.star_rounded,
                   color: Colors.amber,
                   size: 28,
                 ),

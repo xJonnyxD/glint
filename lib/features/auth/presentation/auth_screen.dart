@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -209,7 +210,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Nombres',
                           hintText: 'ej: Juan Carlos',
-                          prefixIcon: Icon(Icons.person_outline),
+                          prefixIcon: Icon(Symbols.person_rounded),
                         ),
                         textCapitalization: TextCapitalization.words,
                         validator: (v) => (v == null || v.trim().isEmpty)
@@ -224,7 +225,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Apellidos',
                           hintText: 'ej: Martínez López',
-                          prefixIcon: Icon(Icons.badge_outlined),
+                          prefixIcon: Icon(Symbols.badge_rounded),
                         ),
                         textCapitalization: TextCapitalization.words,
                         validator: (v) => (v == null || v.trim().isEmpty)
@@ -239,7 +240,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Teléfono',
                           hintText: 'ej: 7777-1234',
-                          prefixIcon: Icon(Icons.phone_outlined),
+                          prefixIcon: Icon(Symbols.phone_rounded),
                           prefixText: '+503 ',
                         ),
                         keyboardType: TextInputType.phone,
@@ -264,8 +265,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             decoration: InputDecoration(
                               labelText: 'Fecha de nacimiento',
                               hintText: 'Toca para seleccionar',
-                              prefixIcon: const Icon(Icons.cake_outlined),
-                              suffixIcon: const Icon(Icons.calendar_today_outlined),
+                              prefixIcon: const Icon(Symbols.cake_rounded),
+                              suffixIcon: const Icon(Symbols.calendar_today_rounded),
                               filled: true,
                             ),
                             controller: TextEditingController(
@@ -287,7 +288,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       controller: _emailCtrl,
                       decoration: const InputDecoration(
                         labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
+                        prefixIcon: Icon(Symbols.mail_rounded),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
@@ -309,12 +310,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _passwordCtrl,
                         decoration: InputDecoration(
                           labelText: 'Contraseña',
-                          prefixIcon: const Icon(Icons.lock_outline),
+                          prefixIcon: const Icon(Symbols.lock_rounded),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _verPassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
+                                  ? Symbols.visibility_off_rounded
+                                  : Symbols.visibility_rounded,
                             ),
                             onPressed: () =>
                                 setState(() => _verPassword = !_verPassword),
@@ -438,7 +439,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           onPressed: cargando
                               ? null
                               : () => setState(() => _modoReset = false),
-                          icon: const Icon(Icons.arrow_back, size: 16),
+                          icon: const Icon(Symbols.arrow_back_rounded, size: 16),
                           label: const Text('Volver al inicio de sesión'),
                         ),
                       ),

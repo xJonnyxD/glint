@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -91,7 +92,7 @@ class _Contenido extends StatelessWidget {
 
         FilledButton.icon(
           onPressed: () => _exportarPDF(context),
-          icon: const Icon(Icons.picture_as_pdf_outlined),
+          icon: const Icon(Symbols.picture_as_pdf_rounded),
           label: const Text('Exportar reporte PDF'),
         ),
       ],

@@ -30,12 +30,12 @@ class GroupsScreen extends StatelessWidget {
                 title: const Text('Gastos compartidos'),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.people_alt_outlined),
+                    icon: const Icon(Symbols.people_alt_rounded),
                     tooltip: 'Amigos',
                     onPressed: () => context.push(AppRoutes.friends),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.group_add_outlined),
+                    icon: const Icon(Symbols.group_add_rounded),
                     tooltip: 'Unirme con un código',
                     onPressed: () => _unirsePorCodigo(context),
                   ),
@@ -78,7 +78,7 @@ class GroupsScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _crearGrupo(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Nuevo grupo'),
       ),
     );
@@ -183,7 +183,7 @@ class _GrupoCard extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         subtitle: Text('Moneda: ${grupo.moneda}'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: const Icon(Symbols.chevron_right_rounded),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => GroupDetailScreen(grupoId: grupo.id),
@@ -264,7 +264,7 @@ class _NuevoGrupoSheetState extends State<_NuevoGrupoSheet> {
                         style: Theme.of(context).textTheme.titleLarge),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Symbols.close_rounded),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -276,7 +276,7 @@ class _NuevoGrupoSheetState extends State<_NuevoGrupoSheet> {
                 decoration: const InputDecoration(
                   labelText: 'Nombre del grupo',
                   hintText: 'Ej. Viaje al sur, Piso compartido',
-                  prefixIcon: Icon(Icons.groups_outlined),
+                  prefixIcon: Icon(Symbols.groups_rounded),
                 ),
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Ponle un nombre' : null,

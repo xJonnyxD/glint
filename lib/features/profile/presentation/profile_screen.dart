@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:glint/core/theme/app_colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,18 +45,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
+              leading: const Icon(Symbols.photo_camera_rounded),
               title: const Text('Tomar foto'),
               onTap: () => Navigator.pop(ctx, _AccionFoto.camara),
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const Icon(Symbols.photo_library_rounded),
               title: const Text('Elegir de galería'),
               onTap: () => Navigator.pop(ctx, _AccionFoto.galeria),
             ),
             if (perfil.tieneAvatar)
               ListTile(
-                leading: Icon(Icons.delete_outline,
+                leading: Icon(Symbols.delete_rounded,
                     color: Theme.of(ctx).colorScheme.error),
                 title: Text('Eliminar foto',
                     style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
@@ -199,8 +200,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 leading: Icon(
                   v == perfil.visibilidad
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Symbols.radio_button_checked_rounded
+                      : Symbols.radio_button_unchecked_rounded,
                   color: v == perfil.visibilidad
                       ? Theme.of(ctx).colorScheme.primary
                       : null,
@@ -283,7 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // un campo sin valor ni siquiera se mostraba, así que no
                     // había forma de rellenarlo.
                     _ProfileTile(
-                      icon: Icons.person_outline,
+                      icon: Symbols.person_rounded,
                       title: 'Nombres',
                       subtitle: perfil.nombres ?? 'Sin definir',
                       onTap: () => _editarTexto(
@@ -296,7 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     _ProfileTile(
-                      icon: Icons.badge_outlined,
+                      icon: Symbols.badge_rounded,
                       title: 'Apellidos',
                       subtitle: perfil.apellidos ?? 'Sin definir',
                       onTap: () => _editarTexto(
@@ -309,12 +310,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     _ProfileTile(
-                      icon: Icons.email_outlined,
+                      icon: Symbols.mail_rounded,
                       title: 'Email',
                       subtitle: email,
                     ),
                     _ProfileTile(
-                      icon: Icons.phone_outlined,
+                      icon: Symbols.phone_rounded,
                       title: 'Teléfono',
                       subtitle: perfil.telefono ?? 'Sin definir',
                       onTap: () => _editarTexto(
@@ -331,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     _ProfileTile(
-                      icon: Icons.cake_outlined,
+                      icon: Symbols.cake_rounded,
                       title: 'Fecha de nacimiento',
                       subtitle: perfil.fechaNacimiento == null
                           ? 'Sin definir'
@@ -342,7 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () => _editarFechaNacimiento(perfil),
                     ),
                     _ProfileTile(
-                      icon: Icons.visibility_outlined,
+                      icon: Symbols.visibility_rounded,
                       title: 'Quién puede encontrarme',
                       subtitle: perfil.visibilidad.etiqueta,
                       onTap: () => _editarVisibilidad(perfil),
@@ -387,12 +388,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // ── SECCIÓN: APP ───────────────────────────────────────
                     _SectionHeader(title: 'Aplicación'),
                     _ProfileTile(
-                      icon: Icons.info_outline,
+                      icon: Symbols.info_rounded,
                       title: 'Versión',
                       subtitle: '1.0.0 — Glint MVP',
                     ),
                     _ProfileTile(
-                      icon: Icons.storage_outlined,
+                      icon: Symbols.storage_rounded,
                       title: 'Datos',
                       subtitle: 'Almacenados localmente en tu dispositivo',
                     ),
@@ -409,7 +410,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14)),
                         ),
-                        icon: const Icon(Icons.logout),
+                        icon: const Icon(Symbols.logout_rounded),
                         label: const Text('Cerrar sesión',
                             style: TextStyle(fontWeight: FontWeight.w600)),
                         onPressed: () => _confirmarCerrarSesion(context),
@@ -583,7 +584,7 @@ class _HeaderPerfil extends StatelessWidget {
                                 color: colorScheme.primary,
                               ),
                             )
-                          : Icon(Icons.camera_alt,
+                          : Icon(Symbols.photo_camera_rounded,
                               size: 16, color: colorScheme.primary),
                     ),
                   ),
@@ -627,7 +628,7 @@ class _HeaderPerfil extends StatelessWidget {
                         style: const TextStyle(
                             color: Colors.white, fontSize: 13)),
                     const SizedBox(width: 6),
-                    const Icon(Icons.edit, size: 12, color: Colors.white70),
+                    const Icon(Symbols.edit_rounded, size: 12, color: Colors.white70),
                   ],
                 ),
               ),
@@ -658,7 +659,7 @@ class _TemaSelector extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.brightness_6_outlined,
+                  Icon(Symbols.brightness_6_rounded,
                       color: colorScheme.primary, size: 20),
                   const SizedBox(width: 8),
                   Text('Tema',
@@ -674,15 +675,15 @@ class _TemaSelector extends StatelessWidget {
                   ButtonSegment(
                       value: ThemeMode.light,
                       label: Text('Claro'),
-                      icon: Icon(Icons.light_mode_outlined)),
+                      icon: Icon(Symbols.light_mode_rounded)),
                   ButtonSegment(
                       value: ThemeMode.system,
                       label: Text('Auto'),
-                      icon: Icon(Icons.brightness_auto_outlined)),
+                      icon: Icon(Symbols.brightness_auto_rounded)),
                   ButtonSegment(
                       value: ThemeMode.dark,
                       label: Text('Oscuro'),
-                      icon: Icon(Icons.dark_mode_outlined)),
+                      icon: Icon(Symbols.dark_mode_rounded)),
                 ],
                 selected: {modoActual},
                 onSelectionChanged: (sel) =>
@@ -715,7 +716,7 @@ class _ColorAcentoSelector extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.palette_outlined,
+                  Icon(Symbols.palette_rounded,
                       color: colorScheme.primary, size: 20),
                   const SizedBox(width: 8),
                   Text('Color de la app',
@@ -761,7 +762,7 @@ class _ColorAcentoSelector extends StatelessWidget {
                               : [],
                         ),
                         child: selected
-                            ? const Icon(Icons.check,
+                            ? const Icon(Symbols.check_rounded,
                                 color: Colors.white, size: 18)
                             : null,
                       ),
@@ -829,7 +830,7 @@ class _ProfileTile extends StatelessWidget {
           title: Text(title),
           subtitle: Text(subtitle),
           trailing: onTap != null
-              ? Icon(Icons.edit_outlined,
+              ? Icon(Symbols.edit_rounded,
                   size: 18,
                   color: Theme.of(context).colorScheme.onSurfaceVariant)
               : null,
@@ -1077,7 +1078,7 @@ class _BiometricTileState extends State<_BiometricTile> {
       child: Card(
         child: SwitchListTile(
           secondary: Icon(
-            Icons.fingerprint,
+            Symbols.fingerprint_rounded,
             color: _habilitado ? colorScheme.primary : colorScheme.onSurface.withAlpha(150),
           ),
           title: const Text('Desbloqueo biométrico'),

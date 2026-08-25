@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
 import 'package:flutter/services.dart';
@@ -154,7 +155,7 @@ class _MovimientosDelMes extends StatelessWidget {
                   ),
                   TextButton.icon(
                     onPressed: () => _abrirEditor(context),
-                    icon: const Icon(Icons.add, size: 18),
+                    icon: const Icon(Symbols.add_rounded, size: 18),
                     label: const Text('Añadir'),
                   ),
                 ],
@@ -289,7 +290,7 @@ class _FilaMovimiento extends StatelessWidget {
                 style: TextStyle(color: color, fontWeight: FontWeight.w700),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(Symbols.delete_rounded, size: 20),
                 tooltip: 'Eliminar',
                 onPressed: onEliminar,
               ),
@@ -354,7 +355,7 @@ class _TarjetaResumen extends StatelessWidget {
                         etiqueta: 'Ingresos',
                         valor: _fmt.format(ingresos),
                         color: Colors.green.shade600,
-                        icono: Icons.arrow_downward,
+                        icono: Symbols.arrow_downward_rounded,
                       ),
                     ),
                     Expanded(
@@ -362,7 +363,7 @@ class _TarjetaResumen extends StatelessWidget {
                         etiqueta: 'Gastos',
                         valor: _fmt.format(gastos),
                         color: colorScheme.error,
-                        icono: Icons.arrow_upward,
+                        icono: Symbols.arrow_upward_rounded,
                       ),
                     ),
                   ],
@@ -560,13 +561,13 @@ class _CategoriaConPresupuesto extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                          icon: Icon(Symbols.edit_rounded, color: colorScheme.primary),
                           onPressed: () =>
                               _mostrarSheet(context, presupuestoExistente: budget),
                           tooltip: 'Editar límite',
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                          icon: Icon(Symbols.delete_rounded, color: colorScheme.error),
                           onPressed: () =>
                               context.read<BudgetCubit>().eliminar(budget.id),
                           tooltip: 'Eliminar presupuesto',
@@ -674,7 +675,7 @@ class _CategoriaSinPresupuesto extends StatelessWidget {
             minimumSize: const Size(40, 36),
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
-          child: const Icon(Icons.add, size: 20),
+          child: const Icon(Symbols.add_rounded, size: 20),
         ),
       ),
     );
@@ -776,7 +777,7 @@ class _PresupuestoSheetState extends State<_PresupuestoSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Symbols.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],

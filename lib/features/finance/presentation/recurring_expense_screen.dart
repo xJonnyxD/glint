@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +45,7 @@ class RecurringExpenseScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarFormulario(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Agregar'),
       ),
     );
@@ -145,7 +146,7 @@ class _Contenido extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.repeat_outlined, size: 72, color: colorScheme.primary.withAlpha(100)),
+                  Icon(Symbols.repeat_rounded, size: 72, color: colorScheme.primary.withAlpha(100)),
                   const SizedBox(height: 16),
                   Text(
                     'Sin gastos recurrentes',
@@ -203,7 +204,7 @@ class _GastoCard extends StatelessWidget {
           color: colorScheme.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        child: const Icon(Symbols.delete_rounded, color: Colors.white),
       ),
       confirmDismiss: (dir) async {
         return await showDialog<bool>(
@@ -403,7 +404,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const Icon(Symbols.close_rounded),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -425,7 +426,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                     decoration: InputDecoration(
                       labelText: 'Nombre del servicio',
                       hintText: 'Netflix, Spotify, Internet...',
-                      prefixIcon: const Icon(Icons.repeat),
+                      prefixIcon: const Icon(Symbols.repeat_rounded),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
@@ -505,7 +506,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                     ],
                     decoration: InputDecoration(
                       labelText: 'Monto',
-                      prefixIcon: const Icon(Icons.attach_money),
+                      prefixIcon: const Icon(Symbols.attach_money_rounded),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
@@ -526,19 +527,19 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                       ButtonSegment(
                           value: FrecuenciaRecurrente.diario,
                           label: Text('Diario'),
-                          icon: Icon(Icons.today_outlined, size: 16)),
+                          icon: Icon(Symbols.today_rounded, size: 16)),
                       ButtonSegment(
                           value: FrecuenciaRecurrente.semanal,
                           label: Text('Semanal'),
-                          icon: Icon(Icons.view_week_outlined, size: 16)),
+                          icon: Icon(Symbols.view_week_rounded, size: 16)),
                       ButtonSegment(
                           value: FrecuenciaRecurrente.mensual,
                           label: Text('Mensual'),
-                          icon: Icon(Icons.calendar_month_outlined, size: 16)),
+                          icon: Icon(Symbols.calendar_month_rounded, size: 16)),
                       ButtonSegment(
                           value: FrecuenciaRecurrente.anual,
                           label: Text('Anual'),
-                          icon: Icon(Icons.event_outlined, size: 16)),
+                          icon: Icon(Symbols.event_rounded, size: 16)),
                     ],
                     selected: {_frecuencia},
                     onSelectionChanged: (sel) =>
@@ -561,7 +562,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.event_note_outlined),
+                        prefixIcon: const Icon(Symbols.event_note_rounded),
                       ),
                       items: List.generate(
                         28,
@@ -579,7 +580,7 @@ class _FormularioGastoState extends State<_FormularioGasto> {
                   // Botón guardar
                   FilledButton.icon(
                     onPressed: _guardar,
-                    icon: const Icon(Icons.save_outlined),
+                    icon: const Icon(Symbols.save_rounded),
                     label: const Text('Guardar gasto recurrente'),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(50),

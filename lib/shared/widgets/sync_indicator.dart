@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 
 import 'package:glint/shared/services/sync_manager.dart';
@@ -23,9 +24,9 @@ class SyncIndicator extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2, color: c),
             );
           case SyncEstado.alDia:
-            return Icon(Icons.cloud_done_outlined, size: 18, color: c);
+            return Icon(Symbols.cloud_done_rounded, size: 18, color: c);
           case SyncEstado.error:
-            return Icon(Icons.cloud_off_outlined,
+            return Icon(Symbols.cloud_off_rounded,
                 size: 18, color: Theme.of(context).colorScheme.error);
           case SyncEstado.inactivo:
             return const SizedBox.shrink();

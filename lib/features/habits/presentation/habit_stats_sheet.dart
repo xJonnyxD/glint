@@ -463,9 +463,9 @@ class _PestanaLogros extends StatelessWidget {
               ),
               subtitle: Text(logro.descripcion),
               trailing: desbloqueado
-                  ? Icon(Icons.check_circle_rounded,
+                  ? Icon(Symbols.check_circle_rounded,
                       color: logro.color, size: 20)
-                  : Icon(Icons.lock_outline_rounded,
+                  : Icon(Symbols.lock_rounded,
                       color: colorScheme.onSurfaceVariant, size: 20),
             ),
           );

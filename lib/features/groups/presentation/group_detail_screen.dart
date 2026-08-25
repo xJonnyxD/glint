@@ -87,7 +87,7 @@ class _GroupDetailView extends StatelessWidget {
           if (state is! GroupDetailLoaded) return const SizedBox.shrink();
           return FloatingActionButton.extended(
             onPressed: () => _abrirNuevoGasto(context, state.detalle),
-            icon: const Icon(Icons.add),
+            icon: const Icon(Symbols.add_rounded),
             label: const Text('Gasto'),
           );
         },
@@ -197,7 +197,7 @@ class _Contenido extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: FilledButton.tonalIcon(
                 onPressed: () => _abrirSaldar(context),
-                icon: const Icon(Icons.handshake_outlined),
+                icon: const Icon(Symbols.handshake_rounded),
                 label: Text(
                   'Saldar deudas (${detalle.liquidaciones.length} ${detalle.liquidaciones.length == 1 ? 'pago' : 'pagos'})',
                 ),
@@ -412,7 +412,7 @@ class _GastoCard extends StatelessWidget {
           color: cs.error,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Icon(Icons.delete_outline, color: cs.onError),
+        child: Icon(Symbols.delete_rounded, color: cs.onError),
       ),
       confirmDismiss: (_) => showDialog<bool>(
         context: context,

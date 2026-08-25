@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -191,12 +192,12 @@ class _MovimientoSheetState extends State<MovimientoSheet> {
                     ButtonSegment(
                       value: TipoTransaccion.gasto,
                       label: Text('Gasto'),
-                      icon: Icon(Icons.trending_down),
+                      icon: Icon(Symbols.trending_down_rounded),
                     ),
                     ButtonSegment(
                       value: TipoTransaccion.ingreso,
                       label: Text('Ingreso'),
-                      icon: Icon(Icons.trending_up),
+                      icon: Icon(Symbols.trending_up_rounded),
                     ),
                   ],
                   selected: {_tipo},
@@ -283,7 +284,7 @@ class _MovimientoSheetState extends State<MovimientoSheet> {
 
                 OutlinedButton.icon(
                   onPressed: _elegirFecha,
-                  icon: const Icon(Icons.calendar_today, size: 18),
+                  icon: const Icon(Symbols.calendar_today_rounded, size: 18),
                   label: Text(DateFormat('d MMMM yyyy', 'es').format(_fecha)),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(52),

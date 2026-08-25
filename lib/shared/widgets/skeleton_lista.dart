@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -20,7 +21,7 @@ class SkeletonLista extends StatelessWidget {
             leading: CircleAvatar(radius: 22),
             title: Text('Elemento de la lista cargando'),
             subtitle: Text('Texto secundario de ejemplo'),
-            trailing: Icon(Icons.chevron_right),
+            trailing: Icon(Symbols.chevron_right_rounded),
           ),
         ),
       ),

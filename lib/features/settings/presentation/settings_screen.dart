@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/core/feedback/haptica.dart';
+import 'package:glint/core/icons/app_icons.dart';
 import 'package:glint/core/theme/theme_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart';
@@ -392,7 +394,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.brightness_6_outlined,
+                              Icon(Symbols.brightness_6_rounded,
                                   color: colorScheme.primary, size: 20),
                               const SizedBox(width: 8),
                               Text('Tema',
@@ -408,15 +410,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ButtonSegment(
                                   value: ThemeMode.light,
                                   label: Text('Claro'),
-                                  icon: Icon(Icons.light_mode_outlined)),
+                                  icon: Icon(AppIcons.themeLight)),
                               ButtonSegment(
                                   value: ThemeMode.system,
                                   label: Text('Auto'),
-                                  icon: Icon(Icons.brightness_auto_outlined)),
+                                  icon: Icon(AppIcons.themeAuto)),
                               ButtonSegment(
                                   value: ThemeMode.dark,
                                   label: Text('Oscuro'),
-                                  icon: Icon(Icons.dark_mode_outlined)),
+                                  icon: Icon(AppIcons.themeDark)),
                             ],
                             selected: {themeState.modo},
                             onSelectionChanged: (sel) =>
@@ -441,7 +443,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.palette_outlined,
+                              Icon(AppIcons.palette,
                                   color: colorScheme.primary, size: 20),
                               const SizedBox(width: 8),
                               Text('Color de la app',
@@ -480,7 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       ),
                                     ),
                                     child: selected
-                                        ? const Icon(Icons.check,
+                                        ? const Icon(Symbols.check_rounded,
                                             color: Colors.white, size: 18)
                                         : null,
                                   ),
@@ -505,7 +507,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Card(
                       color: colorScheme.errorContainer,
                       child: ListTile(
-                        leading: Icon(Icons.notifications_off_outlined,
+                        leading: Icon(Symbols.notifications_off_rounded,
                             color: colorScheme.error),
                         title: Text('Notificaciones desactivadas',
                             style: TextStyle(color: colorScheme.error,
@@ -523,7 +525,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         SwitchListTile(
-                          secondary: Icon(Icons.wb_sunny_outlined,
+                          secondary: Icon(AppIcons.sun,
                               color: colorScheme.primary),
                           title: const Text('Rutinas diarias'),
                           subtitle: Text('Recordatorio a las $_horaRutinas'),
@@ -532,7 +534,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         if (_notifsRutinas)
                           ListTile(
-                            leading: const Icon(Icons.access_time_outlined),
+                            leading: const Icon(AppIcons.clock),
                             title: const Text('Cambiar hora'),
                             trailing: Text(
                               _horaRutinas,
@@ -555,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         SwitchListTile(
-                          secondary: Icon(Icons.favorite_outline,
+                          secondary: Icon(Symbols.favorite_rounded,
                               color: Colors.pinkAccent),
                           title: const Text('Hábitos'),
                           subtitle: Text('Recordatorio a las $_horaHabitos'),
@@ -564,7 +566,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         if (_notifsHabitos)
                           ListTile(
-                            leading: const Icon(Icons.access_time_outlined),
+                            leading: const Icon(AppIcons.clock),
                             title: const Text('Cambiar hora'),
                             trailing: Text(
                               _horaHabitos,
@@ -585,7 +587,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Card(
                     child: SwitchListTile(
-                      secondary: Icon(Icons.calendar_today_outlined,
+                      secondary: Icon(AppIcons.calendar,
                           color: Colors.green.shade600),
                       title: const Text('Agenda'),
                       subtitle: const Text('Recordatorio 30 min antes de cada evento'),
@@ -601,7 +603,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Card(
                     child: SwitchListTile(
-                      secondary: Icon(Icons.vibration,
+                      secondary: Icon(AppIcons.vibration,
                           color: colorScheme.primary),
                       title: const Text('Vibración'),
                       subtitle: const Text(
@@ -623,7 +625,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: Icon(Icons.storage_outlined,
+                          leading: Icon(AppIcons.storage,
                               color: colorScheme.primary),
                           title: const Text('Almacenamiento'),
                           subtitle: const Text(
@@ -631,7 +633,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.delete_outline,
+                          leading: Icon(AppIcons.delete,
                               color: colorScheme.error),
                           title: Text('Borrar datos locales',
                               style: TextStyle(color: colorScheme.error)),
@@ -655,22 +657,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: Icon(Icons.download_outlined,
+                          leading: Icon(AppIcons.download,
                               color: colorScheme.primary),
                           title: const Text('Exportar transacciones'),
                           subtitle: const Text(
                               'Descarga tus finanzas en formato CSV'),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(AppIcons.chevronRight),
                           onTap: _exportarTransacciones,
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.favorite_outline,
+                          leading: Icon(Symbols.favorite_rounded,
                               color: colorScheme.primary),
                           title: const Text('Exportar hábitos'),
                           subtitle: const Text(
                               'Descarga tus hábitos en formato CSV'),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(AppIcons.chevronRight),
                           onTap: _exportarHabitos,
                         ),
                       ],
@@ -686,23 +688,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: Icon(Icons.backup_outlined,
+                          leading: Icon(AppIcons.backup,
                               color: colorScheme.primary),
                           title: const Text('Hacer copia de seguridad'),
                           subtitle: const Text(
                               'Guarda TODOS tus datos en un archivo (Drive, '
                               'correo…). Hazla cada tanto.'),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(AppIcons.chevronRight),
                           onTap: _hacerCopia,
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.restore_outlined,
+                          leading: Icon(Symbols.restore_rounded,
                               color: colorScheme.primary),
                           title: const Text('Restaurar copia'),
                           subtitle: const Text(
                               'Recupera tus datos desde un archivo de copia'),
-                          trailing: const Icon(Icons.chevron_right),
+                          trailing: const Icon(AppIcons.chevronRight),
                           onTap: _restaurarCopia,
                         ),
                       ],
@@ -721,21 +723,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Column(
                       children: [
                         ListTile(
-                          leading: Icon(Icons.info_outline,
+                          leading: Icon(AppIcons.info,
                               color: colorScheme.primary),
                           title: const Text('Versión'),
                           subtitle: Text(AppConstants.appVersion),
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.location_on_outlined,
+                          leading: Icon(Symbols.location_on_rounded,
                               color: colorScheme.primary),
                           title: const Text('Región'),
                           subtitle: const Text('El Salvador 🇸🇻'),
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: Icon(Icons.attach_money,
+                          leading: Icon(Symbols.attach_money_rounded,
                               color: colorScheme.primary),
                           title: const Text('Moneda'),
                           subtitle: const Text('USD — Dólar estadounidense'),

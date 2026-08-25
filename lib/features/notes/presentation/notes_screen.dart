@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:glint/core/icons/app_icons.dart';
@@ -81,7 +82,7 @@ class _NotesScreenState extends State<NotesScreen> {
         if (state is NoteLoaded && count > 0)
           IconButton(
             icon: Icon(
-              _searchVisible ? Icons.search_off : Icons.search,
+              _searchVisible ? Symbols.search_off_rounded : Symbols.search_rounded,
             ),
             tooltip: 'Buscar',
             onPressed: () {
@@ -115,10 +116,10 @@ class _NotesScreenState extends State<NotesScreen> {
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'Buscar en título, texto, etiquetas y listas...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(Symbols.search_rounded),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Symbols.close_rounded),
                         onPressed: () {
                           _searchCtrl.clear();
                           context.read<NoteCubit>().buscar('');
@@ -203,14 +204,14 @@ class _NotesScreenState extends State<NotesScreen> {
       sliver: SliverList(
         delegate: SliverChildListDelegate([
           if (fijadas.isNotEmpty) ...[
-            _buildSectionHeader(context, 'Fijadas', Icons.push_pin),
+            _buildSectionHeader(context, 'Fijadas', Symbols.push_pin_rounded),
             const SizedBox(height: 8),
             _buildGrid(context, fijadas),
             const SizedBox(height: 16),
           ],
           if (normales.isNotEmpty) ...[
             if (fijadas.isNotEmpty)
-              _buildSectionHeader(context, 'Otras notas', Icons.notes),
+              _buildSectionHeader(context, 'Otras notas', Symbols.notes_rounded),
             if (fijadas.isNotEmpty) const SizedBox(height: 8),
             _buildGrid(context, normales),
           ],
@@ -295,7 +296,7 @@ class _NotesScreenState extends State<NotesScreen> {
         FloatingActionButton.extended(
           heroTag: 'fab_lista',
           onPressed: () => _abrirCrear(context, esChecklist: true),
-          icon: const Icon(Icons.checklist),
+          icon: const Icon(Symbols.checklist_rounded),
           label: const Text('Lista'),
           backgroundColor:
               Theme.of(context).colorScheme.secondaryContainer,
@@ -306,7 +307,7 @@ class _NotesScreenState extends State<NotesScreen> {
         FloatingActionButton.extended(
           heroTag: 'fab_nota',
           onPressed: () => _abrirCrear(context, esChecklist: false),
-          icon: const Icon(Icons.edit_note),
+          icon: const Icon(Symbols.edit_note_rounded),
           label: const Text('Nota'),
         ),
       ],
@@ -424,7 +425,7 @@ class _NoteCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(
-          Icons.delete_outline,
+          Symbols.delete_rounded,
           color: Theme.of(context).colorScheme.error,
         ),
       ),
@@ -533,7 +534,7 @@ class _NoteCard extends StatelessWidget {
                 const Positioned(
                   top: 8,
                   right: 8,
-                  child: Icon(Icons.push_pin, size: 16, color: Colors.black54),
+                  child: Icon(Symbols.push_pin_rounded, size: 16, color: Colors.black54),
                 ),
             ],
           ),
@@ -555,8 +556,8 @@ class _NoteCard extends StatelessWidget {
                 children: [
                   Icon(
                     item.completado
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank,
+                        ? Symbols.check_box_rounded
+                        : Symbols.check_box_outline_blank_rounded,
                     size: 14,
                     color: Colors.black54,
                   ),
@@ -626,14 +627,14 @@ class _NoteOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ListTile(
-            leading: const Icon(Icons.edit_outlined),
+            leading: const Icon(Symbols.edit_rounded),
             title: const Text('Editar'),
             onTap: onEdit,
           ),
           ListTile(
             leading: Icon(nota.esFijada
-                ? Icons.push_pin_outlined
-                : Icons.push_pin),
+                ? Symbols.push_pin_rounded
+                : Symbols.push_pin_rounded),
             title: Text(nota.esFijada ? 'Quitar fijado' : 'Fijar nota'),
             onTap: () {
               context.read<NoteCubit>().toggleFijada(nota);
@@ -641,7 +642,7 @@ class _NoteOptionsSheet extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: Icon(Icons.delete_outline,
+            leading: Icon(Symbols.delete_rounded,
                 color: Theme.of(context).colorScheme.error),
             title: Text('Eliminar',
                 style:
@@ -1180,7 +1181,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(Symbols.close_rounded),
             tooltip: 'Cerrar',
             onPressed: () => Navigator.pop(context),
           ),
@@ -1188,7 +1189,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
           // Pin toggle
           IconButton(
             icon: Icon(
-              _esFijada ? Icons.push_pin : Icons.push_pin_outlined,
+              _esFijada ? Symbols.push_pin_rounded : Symbols.push_pin_rounded,
               color: _esFijada
                   ? Theme.of(context).colorScheme.primary
                   : Colors.black54,
@@ -1199,7 +1200,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
           // Save button
           FilledButton.icon(
             onPressed: () => _guardar(context),
-            icon: const Icon(Icons.check, size: 18),
+            icon: const Icon(Symbols.check_rounded, size: 18),
             label: const Text('Guardar'),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.black87,
@@ -1229,8 +1230,8 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
                   onTap: () => _toggleItemCompletado(i),
                   child: Icon(
                     _items[i].completado
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
+                        ? Symbols.check_circle_rounded
+                        : Symbols.radio_button_unchecked_rounded,
                     size: 22,
                     color: _items[i].completado
                         ? Colors.black54
@@ -1262,7 +1263,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 18, color: Colors.black45),
+                  icon: const Icon(Symbols.close_rounded, size: 18, color: Colors.black45),
                   onPressed: () => _removeItem(i),
                   splashRadius: 18,
                   padding: EdgeInsets.zero,
@@ -1277,7 +1278,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
           onTap: _addItem,
           child: Row(
             children: [
-              const Icon(Icons.add, size: 22, color: Colors.black45),
+              const Icon(Symbols.add_rounded, size: 22, color: Colors.black45),
               const SizedBox(width: 8),
               Text(
                 'Agregar elemento',
@@ -1314,7 +1315,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
           decoration: InputDecoration(
             hintText: 'trabajo, personal, ideas',
             hintStyle: const TextStyle(color: Colors.black54, fontSize: 14),
-            prefixIcon: const Icon(Icons.label_outline, color: Colors.black45),
+            prefixIcon: const Icon(Symbols.label_rounded, color: Colors.black45),
             filled: true,
             fillColor: Colors.black.withValues(alpha: 0.06),
             border: OutlineInputBorder(
@@ -1437,7 +1438,7 @@ class _NoteEditSheetState extends State<_NoteEditSheet>
                         : [],
                   ),
                   child: selected
-                      ? const Icon(Icons.check,
+                      ? const Icon(Symbols.check_rounded,
                           size: 16, color: Colors.black54)
                       : null,
                 ),

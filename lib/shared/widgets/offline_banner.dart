@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -86,7 +87,7 @@ class _OfflineBannerState extends State<OfflineBanner>
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.wifi_off_rounded,
+                    const Icon(Symbols.wifi_off_rounded,
                         color: Colors.white, size: 18),
                     const SizedBox(width: 10),
                     const Expanded(

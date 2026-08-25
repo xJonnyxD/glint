@@ -88,4 +88,20 @@ abstract class AppIcons {
   static const IconData backup    = Symbols.backup_rounded;
   static const IconData themeLight = Symbols.light_mode_rounded;
   static const IconData themeDark  = Symbols.dark_mode_rounded;
+  static const IconData themeAuto  = Symbols.brightness_auto_rounded;
+
+  // ── Perfil / cuenta (extra) ─────────────────────────────────────────────
+  static const IconData camera    = Symbols.photo_camera_rounded;
+  static const IconData gallery   = Symbols.photo_library_rounded;
+  static const IconData phone     = Symbols.phone_rounded;
+  static const IconData birthday  = Symbols.cake_rounded;
+  static const IconData badge     = Symbols.badge_rounded;
+  static const IconData palette   = Symbols.palette_rounded;
+  static const IconData personAdd = Symbols.person_add_rounded;
+  static const IconData vibration = Symbols.vibration_rounded;
+  static const IconData storage   = Symbols.database_rounded;
+
+  // ── Navegación / listas (extra) ─────────────────────────────────────────
+  static const IconData chevronRight = Symbols.chevron_right_rounded;
+  static const IconData chevronLeft  = Symbols.chevron_left_rounded;
 }

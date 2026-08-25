@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -65,7 +66,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarAgregarEvento(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Agregar'),
       ),
     );
@@ -171,7 +172,7 @@ class _BarraAgenda extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.today_outlined),
+              icon: const Icon(Symbols.today_rounded),
               tooltip: 'Hoy',
               onPressed: () =>
                   context.read<AgendaCubit>().seleccionarDia(DateTime.now()),
@@ -244,9 +245,9 @@ class _AgendaContenido extends StatelessWidget {
                     .textTheme
                     .titleMedium!
                     .copyWith(fontWeight: FontWeight.w700),
-                leftChevronIcon: Icon(Icons.chevron_left,
+                leftChevronIcon: Icon(Symbols.chevron_left_rounded,
                     color: colorScheme.primary),
-                rightChevronIcon: Icon(Icons.chevron_right,
+                rightChevronIcon: Icon(Symbols.chevron_right_rounded,
                     color: colorScheme.primary),
               ),
               calendarStyle: CalendarStyle(
@@ -333,7 +334,7 @@ class _AgendaContenido extends StatelessWidget {
       padding: const EdgeInsets.all(40),
       child: Column(
         children: [
-          Icon(Icons.event_available_outlined,
+          Icon(Symbols.event_available_rounded,
               size: 56, color: colorScheme.primary.withAlpha(100)),
           const SizedBox(height: 12),
           Text('Día libre',
@@ -422,7 +423,7 @@ class _EventoCard extends StatelessWidget {
                         ),
                       ),
                       child: evento.completado
-                          ? Icon(Icons.check,
+                          ? Icon(Symbols.check_rounded,
                               size: 16, color: colorScheme.onPrimary)
                           : null,
                     ),
@@ -598,7 +599,7 @@ class _DetalleEventoSheet extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.calendar_today_outlined,
+              Icon(Symbols.calendar_today_rounded,
                   size: 16, color: colorScheme.primary),
               const SizedBox(width: 6),
               Text(
@@ -607,7 +608,7 @@ class _DetalleEventoSheet extends StatelessWidget {
               ),
               if (evento.hora != null) ...[
                 const SizedBox(width: 12),
-                Icon(Icons.access_time,
+                Icon(Symbols.schedule_rounded,
                     size: 16, color: colorScheme.primary),
                 const SizedBox(width: 4),
                 Text(evento.hora!,
@@ -633,7 +634,7 @@ class _DetalleEventoSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () => Navigator.pop(context, 'editar'),
-                  icon: const Icon(Icons.edit_outlined),
+                  icon: const Icon(Symbols.edit_rounded),
                   label: const Text('Editar'),
                 ),
               ),
@@ -645,7 +646,7 @@ class _DetalleEventoSheet extends StatelessWidget {
                     foregroundColor: colorScheme.onErrorContainer,
                   ),
                   onPressed: () => Navigator.pop(context, 'eliminar'),
-                  icon: const Icon(Icons.delete_outline),
+                  icon: const Icon(Symbols.delete_rounded),
                   label: const Text('Eliminar'),
                 ),
               ),
@@ -801,7 +802,7 @@ class _AgregarEventoSheetState extends State<_AgregarEventoSheet> {
                 controller: _tituloCtrl,
                 decoration: InputDecoration(
                   labelText: 'Título',
-                  prefixIcon: const Icon(Icons.title),
+                  prefixIcon: const Icon(Symbols.title_rounded),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -819,7 +820,7 @@ class _AgregarEventoSheetState extends State<_AgregarEventoSheet> {
                 decoration: InputDecoration(
                   labelText: 'Notas (opcional)',
                   hintText: 'Detalles, recordatorios...',
-                  prefixIcon: const Icon(Icons.notes_outlined),
+                  prefixIcon: const Icon(Symbols.notes_rounded),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -830,7 +831,7 @@ class _AgregarEventoSheetState extends State<_AgregarEventoSheet> {
               // Fecha
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.calendar_today_outlined,
+                leading: Icon(Symbols.calendar_today_rounded,
                     color: colorScheme.primary),
                 title: Text(_formatFecha(_fecha),
                     style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -847,7 +848,7 @@ class _AgregarEventoSheetState extends State<_AgregarEventoSheet> {
               if (_tipo == TipoEvento.evento)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.access_time_outlined,
+                  leading: Icon(Symbols.schedule_rounded,
                       color: colorScheme.primary),
                   title: Text(
                     _hora != null

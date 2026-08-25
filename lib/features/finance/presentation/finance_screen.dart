@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,7 +38,7 @@ class FinanceScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _mostrarAgregarTransaccion(context),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Symbols.add_rounded),
         label: const Text('Agregar'),
       ),
     );
@@ -60,13 +61,13 @@ class FinanceScreen extends StatelessWidget {
           actions: [
             // Botón calculadora de salario SV
             IconButton(
-              icon: const Icon(Icons.calculate_outlined),
+              icon: const Icon(Symbols.calculate_rounded),
               tooltip: 'Calculadora salarial 🇸🇻',
               onPressed: () => context.push(AppRoutes.salaryCalculator),
             ),
             // Botón exportar CSV
             IconButton(
-              icon: const Icon(Icons.download_outlined),
+              icon: const Icon(Symbols.download_rounded),
               tooltip: 'Exportar a CSV',
               onPressed: () => _exportarCSV(context, state),
             ),
@@ -131,7 +132,7 @@ class FinanceScreen extends StatelessWidget {
                 color: colorScheme.primaryContainer,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.account_balance_wallet_outlined,
+              child: Icon(Symbols.account_balance_wallet_rounded,
                   size: 48, color: colorScheme.primary),
             ),
             const SizedBox(height: 24),
@@ -281,7 +282,7 @@ class _HeaderFinanzas extends StatelessWidget {
                   color: colorScheme.onPrimary.withAlpha(200),
                   tooltip: oculto ? 'Mostrar importes' : 'Ocultar importes',
                   icon: Icon(
-                    oculto ? Icons.visibility_off : Icons.visibility,
+                    oculto ? Symbols.visibility_off_rounded : Symbols.visibility_rounded,
                   ),
                   onPressed: PrivacidadSaldo.instancia.alternar,
                 ),
@@ -304,7 +305,7 @@ class _HeaderFinanzas extends StatelessWidget {
             children: [
               Expanded(
                 child: _MiniResumen(
-                  icon: Icons.arrow_upward_rounded,
+                  icon: Symbols.arrow_upward_rounded,
                   label: 'Ingresos',
                   monto: state.totalIngresos,
                   color: Colors.greenAccent,
@@ -314,7 +315,7 @@ class _HeaderFinanzas extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _MiniResumen(
-                  icon: Icons.arrow_downward_rounded,
+                  icon: Symbols.arrow_downward_rounded,
                   label: 'Gastos',
                   monto: state.totalGastos,
                   color: balancePositivo
@@ -632,7 +633,7 @@ class _TransaccionCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.notes,
+                            Icon(Symbols.notes_rounded,
                                 size: 12,
                                 color: colorScheme.primary),
                             const SizedBox(width: 4),
@@ -674,7 +675,7 @@ class _TransaccionCard extends StatelessWidget {
                     ),
                     if (tieneImagen) ...[
                       const SizedBox(height: 4),
-                      Icon(Icons.photo_outlined,
+                      Icon(Symbols.photo_rounded,
                           size: 14,
                           color: colorScheme.onSurface.withAlpha(128)),
                     ],
@@ -980,7 +981,7 @@ class _AgregarTransaccionSheetState
                 controller: _descripcionCtrl,
                 decoration: InputDecoration(
                   labelText: 'Descripción',
-                  prefixIcon: const Icon(Icons.edit_outlined),
+                  prefixIcon: const Icon(Symbols.edit_rounded),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -1041,7 +1042,7 @@ class _AgregarTransaccionSheetState
                 decoration: InputDecoration(
                   labelText: 'Notas (opcional)',
                   hintText: 'Ej: pago de factura de marzo...',
-                  prefixIcon: const Icon(Icons.notes_outlined),
+                  prefixIcon: const Icon(Symbols.notes_rounded),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -1154,7 +1155,7 @@ class _FotoComprobante extends StatelessWidget {
                           color: Colors.black54,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.edit,
+                        child: const Icon(Symbols.edit_rounded,
                             color: Colors.white, size: 16),
                       ),
                     ),
@@ -1164,7 +1165,7 @@ class _FotoComprobante extends StatelessWidget {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_outlined,
+                  Icon(Symbols.add_photo_alternate_rounded,
                       color: colorScheme.primary),
                   const SizedBox(width: 8),
                   Text(
@@ -1186,7 +1187,7 @@ class _FotoComprobante extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
+              leading: const Icon(Symbols.photo_camera_rounded),
               title: const Text('Tomar foto'),
               onTap: () async {
                 Navigator.pop(ctx);
@@ -1196,7 +1197,7 @@ class _FotoComprobante extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
+              leading: const Icon(Symbols.photo_library_rounded),
               title: const Text('Elegir de galería'),
               onTap: () async {
                 Navigator.pop(ctx);
@@ -1284,7 +1285,7 @@ class _HerramientasFinanzas extends StatelessWidget {
             children: [
               Expanded(
                 child: _HerramientaCard(
-                  icon: Icons.pie_chart_outline,
+                  icon: Symbols.pie_chart_rounded,
                   label: 'Presupuesto',
                   color: const Color(0xFF1565C0),
                   onTap: () => context.push(AppRoutes.financeBudget),
@@ -1293,7 +1294,7 @@ class _HerramientasFinanzas extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HerramientaCard(
-                  icon: Icons.savings_outlined,
+                  icon: Symbols.savings_rounded,
                   label: 'Mis Metas',
                   color: const Color(0xFF2E7D32),
                   onTap: () => context.push(AppRoutes.financeSavingsGoals),
@@ -1302,7 +1303,7 @@ class _HerramientasFinanzas extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HerramientaCard(
-                  icon: Icons.swap_horiz_outlined,
+                  icon: Symbols.swap_horiz_rounded,
                   label: 'Deudas',
                   color: const Color(0xFFAD1457),
                   onTap: () => context.push(AppRoutes.financeDebts),
@@ -1311,7 +1312,7 @@ class _HerramientasFinanzas extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _HerramientaCard(
-                  icon: Icons.repeat_outlined,
+                  icon: Symbols.repeat_rounded,
                   label: 'Recurrentes',
                   color: const Color(0xFFE65100),
                   onTap: () => context.push(AppRoutes.financeRecurring),
@@ -1332,12 +1333,12 @@ class _HerramientasFinanzas extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Icon(Icons.insights_outlined, color: Color(0xFF1565C0)),
+                  child: Icon(Symbols.insights_rounded, color: Color(0xFF1565C0)),
                 ),
               ),
               title: const Text('Análisis y reportes'),
               subtitle: const Text('Gráficos de tendencia y exportar a PDF'),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Symbols.chevron_right_rounded),
               onTap: () => context.push(AppRoutes.financeAnalytics),
             ),
           ),
@@ -1354,13 +1355,13 @@ class _HerramientasFinanzas extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Center(
-                  child: Icon(Icons.group_rounded,
+                  child: Icon(Symbols.group_rounded,
                       size: 24, color: Color(0xFF6750A4)),
                 ),
               ),
               title: const Text('Gastos compartidos'),
               subtitle: const Text('Divide gastos con amigos y salda deudas'),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const Icon(Symbols.chevron_right_rounded),
               onTap: () => context.push(AppRoutes.groups),
             ),
           ),

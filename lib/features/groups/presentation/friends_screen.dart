@@ -30,7 +30,7 @@ class _FriendsView extends StatelessWidget {
         title: const Text('Amigos'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_add_alt_1_outlined),
+            icon: const Icon(Symbols.person_add_rounded),
             tooltip: 'Buscar y agregar',
             onPressed: () => _buscar(context),
           ),
@@ -66,7 +66,7 @@ class _FriendsView extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.check_circle,
+                              icon: const Icon(Symbols.check_circle_rounded,
                                   color: Color(0xFF2A9D5C)),
                               tooltip: 'Aceptar',
                               onPressed: () => context
@@ -74,7 +74,7 @@ class _FriendsView extends StatelessWidget {
                                   .responder(s.id, true),
                             ),
                             IconButton(
-                              icon: Icon(Icons.cancel,
+                              icon: Icon(Symbols.cancel_rounded,
                                   color: Theme.of(context).colorScheme.error),
                               tooltip: 'Rechazar',
                               onPressed: () => context
@@ -123,7 +123,7 @@ class _FriendsView extends StatelessWidget {
                             ? a.email
                             : '${a.email} · ${a.codigoAmigo}'),
                         trailing: IconButton(
-                          icon: const Icon(Icons.person_remove_outlined),
+                          icon: const Icon(Symbols.person_remove_rounded),
                           tooltip: 'Eliminar',
                           onPressed: () => _confirmarEliminar(context, a),
                         ),
@@ -223,14 +223,14 @@ class _BuscarAmigoSheetState extends State<_BuscarAmigoSheet> {
             onSubmitted: (_) => _buscar(),
             decoration: InputDecoration(
               labelText: 'Correo o código de amigo',
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: const Icon(Symbols.search_rounded),
               suffixIcon: IconButton(
                 icon: _buscando
                     ? const SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.arrow_forward),
+                    : const Icon(Symbols.arrow_forward_rounded),
                 onPressed: _buscando ? null : _buscar,
               ),
             ),

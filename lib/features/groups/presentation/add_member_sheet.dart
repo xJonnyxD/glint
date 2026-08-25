@@ -1,3 +1,4 @@
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -99,7 +100,7 @@ class _AddMemberSheetState extends State<AddMemberSheet> {
                       style: Theme.of(context).textTheme.titleLarge),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Symbols.close_rounded),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -138,13 +139,13 @@ class _AddMemberSheetState extends State<AddMemberSheet> {
               onSubmitted: (_) => _buscar(),
               decoration: InputDecoration(
                 labelText: 'Correo o código de amigo',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(Symbols.search_rounded),
                 suffixIcon: IconButton(
                   icon: _buscando
                       ? const SizedBox(
                           width: 18, height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.arrow_forward),
+                      : const Icon(Symbols.arrow_forward_rounded),
                   onPressed: _buscando ? null : _buscar,
                 ),
               ),
@@ -183,13 +184,13 @@ class _AddMemberSheetState extends State<AddMemberSheet> {
               onSubmitted: (_) => _agregarVirtual(),
               decoration: const InputDecoration(
                 labelText: 'Nombre (ej. Pablo)',
-                prefixIcon: Icon(Icons.person_add_alt_outlined),
+                prefixIcon: Icon(Symbols.person_add_rounded),
               ),
             ),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: _agregarVirtual,
-              icon: const Icon(Icons.add),
+              icon: const Icon(Symbols.add_rounded),
               label: const Text('Añadir persona'),
             ),
           ],
