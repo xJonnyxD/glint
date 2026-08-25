@@ -2,7 +2,7 @@ name: glint
 description: "Glint - Super-app de productividad, hábitos y finanzas personales."
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+3
 
 environment:
   sdk: ^3.11.4
