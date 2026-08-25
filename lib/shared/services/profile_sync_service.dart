@@ -146,6 +146,16 @@ class ProfileSyncService {
     // Se escriben solo las columnas que vienen del servidor: `avatar_bytes` y
     // `avatar_pendiente` son locales y se conservan tal cual.
     await _enModoSync(() async {
+      // Garantizar que la fila local existe ANTES del UPDATE: en una
+      // reinstalación, el sync inicial (disparado en el login) puede llegar
+      // aquí antes de que `ProfileRepository.asegurarFila` haya creado la fila,
+      // y entonces el UPDATE no afectaba a nadie y el `avatar_url` (y el resto
+      // del perfil) se perdía hasta el siguiente ciclo. Con `insertOrIgnore` la
+      // fila queda creada si faltaba, y el UPDATE de abajo la rellena.
+      await _db.into(_db.profiles).insert(
+            ProfilesCompanion.insert(id: uid),
+            mode: InsertMode.insertOrIgnore,
+          );
       await (_db.update(_db.profiles)..where((p) => p.id.equals(uid))).write(
         ProfilesCompanion(
           email: _valor<String>(remoto['email']),
