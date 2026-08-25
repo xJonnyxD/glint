@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   /// Tablas que sincronizan con Supabase mediante el motor genérico
   /// (además de hábitos, que tiene su propia lógica por las rachas).
@@ -122,8 +122,46 @@ class AppDatabase extends _$AppDatabase {
         // había forma de decir cuánto duraban.
         await m.addColumn(events, events.duracionMinutos);
       }
+      if (from < 14) {
+        // Foto de perfil (Storage). Las columnas del avatar se añaden aquí, y
+        // no basta con haberlas puesto en la definición de la tabla: quien ya
+        // tenía la tabla `profiles` (creada en v11, antes de que existiera la
+        // foto) NO vuelve a pasar por su `createTable` al actualizar, así que
+        // sin este paso le faltarían las columnas y la app crashearía al
+        // cambiar la foto con "no such column: avatar_bytes".
+        //
+        // Idempotente y con defaults constantes, por lo mismo que la v10: se
+        // salta la columna que ya exista (los builds que crearon `profiles`
+        // con las columnas nuevas ya la tienen) y se usa ALTER con default
+        // constante, que es lo único que SQLite acepta.
+        await _agregarColumnasAvatar();
+      }
     },
   );
+
+  /// Añade a `profiles` las columnas del avatar que falten, con las mismas
+  /// definiciones que genera Drift en el esquema. Saltar las existentes evita
+  /// el "duplicate column name" en las bases que ya las tienen.
+  Future<void> _agregarColumnasAvatar() async {
+    final existentes = (await customSelect(
+      "SELECT name FROM pragma_table_info('profiles')",
+    ).get())
+        .map((r) => r.data['name'] as String)
+        .toSet();
+
+    if (!existentes.contains('avatar_url')) {
+      await customStatement('ALTER TABLE profiles ADD COLUMN avatar_url TEXT');
+    }
+    if (!existentes.contains('avatar_bytes')) {
+      await customStatement('ALTER TABLE profiles ADD COLUMN avatar_bytes BLOB');
+    }
+    if (!existentes.contains('avatar_pendiente')) {
+      await customStatement(
+        'ALTER TABLE profiles ADD COLUMN avatar_pendiente INTEGER NOT NULL '
+        'DEFAULT 0 CHECK ("avatar_pendiente" IN (0, 1))',
+      );
+    }
+  }
 
   /// Añade `actualizado_en` y `pendiente_sync` a [tabla] con SQL crudo y
   /// defaults constantes, saltando las que ya existan.

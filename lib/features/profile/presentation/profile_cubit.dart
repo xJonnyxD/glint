@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/features/profile/data/profile_repository.dart';
 import 'package:glint/features/profile/domain/profile_entity.dart';
 import 'profile_state.dart';
@@ -26,6 +27,11 @@ class ProfileCubit extends Cubit<ProfileState> {
   final Future<void> Function(String uid)? _empujarSync;
 
   StreamSubscription? _sub;
+
+  /// Para no reintentar la subida de la foto en cada emisión del stream, que
+  /// salta con cualquier cambio del perfil. Una vez por sesión basta: si sigue
+  /// sin haber red, se reintenta al volver a abrir la pantalla.
+  bool _reintentoFotoHecho = false;
 
   ProfileCubit(
     this._repo,
@@ -50,6 +56,14 @@ class ProfileCubit extends Cubit<ProfileState> {
         emit(actual is ProfileLoaded
             ? actual.copyWith(perfil: perfil)
             : ProfileLoaded(perfil));
+
+        // Si quedó una foto sin subir de una sesión anterior (se eligió sin
+        // red, o antes de que Storage existiera), este es el momento de
+        // mandarla: ya hay perfil cargado y sesión válida.
+        if (perfil.avatarPendiente && !_reintentoFotoHecho) {
+          _reintentoFotoHecho = true;
+          unawaited(reintentarFotoPendiente());
+        }
       },
       onError: (_) {
         // Sin fila local no hay nada que pintar; se reintenta al reabrir.
@@ -165,14 +179,66 @@ class ProfileCubit extends Cubit<ProfileState> {
     await _empujar();
   }
 
-  /// Sube el avatar y devuelve su URL pública. Hasta que Storage esté
-  /// desplegado (fase 6) no hay dónde subirla: se lanza para que el llamante
-  /// la deje marcada como pendiente y la reintente.
+  /// Ruta del avatar dentro del bucket. La carpeta es el UUID del usuario
+  /// porque la política de `storage.objects` decide el dueño por ahí: solo se
+  /// puede escribir bajo `avatares/<uid propio>/`.
+  String get _rutaAvatar => '$_uid/avatar.jpg';
+
+  /// Sube el avatar y devuelve su URL pública.
+  ///
+  /// El nombre del archivo es siempre el mismo y se sube con `upsert`, así no
+  /// se acumulan fotos viejas que nadie borra. Pero eso deja la URL idéntica
+  /// tras cambiar la foto, y el navegador y Cloudflare seguirían sirviendo la
+  /// anterior —el mismo problema que ya hubo con el APK y con los iconos—, así
+  /// que se le cuelga un `?v=<epoch>` que cambia en cada subida.
   Future<String> _subirAvatar(Uint8List bytes) async {
-    throw UnimplementedError('Storage aún no desplegado');
+    final almacen = _supabase.storage.from(AppConstants.bucketAvatares);
+    await almacen.uploadBinary(
+      _rutaAvatar,
+      bytes,
+      fileOptions: const FileOptions(
+        contentType: 'image/jpeg',
+        upsert: true,
+        // Un año: la URL ya lleva su propia versión, así que el archivo de una
+        // versión concreta se puede cachear sin miedo.
+        cacheControl: '31536000',
+      ),
+    );
+    final url = almacen.getPublicUrl(_rutaAvatar);
+    return '$url?v=${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  Future<void> _borrarAvatarRemoto() async {}
+  Future<void> _borrarAvatarRemoto() async {
+    await _supabase.storage.from(AppConstants.bucketAvatares).remove([_rutaAvatar]);
+  }
+
+  /// Reintenta subir la foto que quedó marcada como pendiente.
+  ///
+  /// Hace falta porque [cambiarFoto] es optimista: guarda en local y sigue
+  /// aunque la subida falle (sin red, servidor caído). Sin este reintento la
+  /// foto se quedaría en el dispositivo para siempre y nadie más la vería —que
+  /// es exactamente lo que pasaba mientras Storage no existía.
+  Future<void> reintentarFotoPendiente() async {
+    final actual = state;
+    if (actual is! ProfileLoaded) return;
+    if (!actual.perfil.avatarPendiente) return;
+
+    final bytes = actual.perfil.avatarBytes;
+    if (bytes == null || bytes.isEmpty) {
+      // Marcada como pendiente pero sin bytes que subir: no hay nada que
+      // reintentar, y dejarla así haría que se intentara en cada arranque.
+      await _repo.guardarAvatar(_uid, bytes: null, url: null, pendiente: false);
+      return;
+    }
+
+    try {
+      final url = await _subirAvatar(bytes);
+      await _repo.guardarAvatar(_uid, bytes: bytes, url: url, pendiente: false);
+      await _empujar();
+    } catch (_) {
+      // Sigue sin poder subirse; se reintentará la próxima vez.
+    }
+  }
 
   Future<void> _espejarNombreEnAuth(String nombre) async {
     try {

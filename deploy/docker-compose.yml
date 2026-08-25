@@ -142,13 +142,46 @@ services:
              /app/bin/server"
     networks: [internal]
 
-  # Gateway estilo Kong: expone /auth/v1, /rest/v1 y /realtime/v1 bajo el dominio
+  # Archivos subidos por el usuario: por ahora solo las fotos de perfil.
+  storage:
+    image: supabase/storage-api:v1.11.13
+    container_name: glint-storage
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      # knex no aplica el search_path aunque el rol tenga el suyo por defecto,
+      # así que se fija también a nivel de libpq. Aprendido en el stack de vet.
+      PGOPTIONS: "-c search_path=storage,public"
+      # 5 MB basta de sobra para un avatar y acota lo que puede subir alguien
+      # con una sesión válida. El cliente además reescala antes de subir.
+      FILE_SIZE_LIMIT: "5242880"
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+    volumes:
+      - glint-storage-data:/var/lib/storage
+    networks: [internal]
+
+  # Gateway estilo Kong: expone /auth/v1, /rest/v1, /realtime/v1 y /storage/v1
   api:
     image: nginx:1.27-alpine
     container_name: glint-api
     restart: unless-stopped
     mem_limit: 128m
-    depends_on: [auth, rest, realtime]
+    depends_on: [auth, rest, realtime, storage]
     volumes:
       - ./glint-api.conf:/etc/nginx/conf.d/default.conf:ro
     networks: [internal, traefik-public]
@@ -172,3 +205,4 @@ networks:
 
 volumes:
   glint-dbdata:
+  glint-storage-data:

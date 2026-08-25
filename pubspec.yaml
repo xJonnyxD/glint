@@ -2,7 +2,7 @@ name: glint
 description: "Glint - Super-app de productividad, hábitos y finanzas personales."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.11.4
@@ -81,6 +81,9 @@ dev_dependencies:
   # --- Testing ---
   mocktail: ^1.0.4
   # bloc_test se agrega cuando se implementen los primeros BLoCs
+  # Para pre-sembrar una base en un esquema viejo en los tests de migración
+  # (ya viene como dependencia transitiva de drift).
+  sqlite3: ^2.4.1
 
   # --- Ícono de la app ---
   flutter_launcher_icons: ^0.14.3

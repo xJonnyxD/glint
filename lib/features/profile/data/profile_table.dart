@@ -42,8 +42,10 @@ class Profiles extends Table {
   // ── Puramente local (NO viaja al servidor) ───────────────────────────────
   /// Bytes del avatar cacheados en el dispositivo. Es lo que hace que la foto
   /// se vea al instante al elegirla, sobreviva a un reinicio y funcione sin
-  /// red. No se sube: al servidor va la URL, no el binario. Sí entra en la
-  /// copia de seguridad (en base64).
+  /// red. No se sube: al servidor va la URL, no el binario. Tampoco entra en la
+  /// copia de seguridad (que solo respalda las tablas con `usuario_id`), y no
+  /// hace falta: la foto vive en Storage y vuelve al reinstalar vía `avatar_url`
+  /// en cuanto el perfil se sincroniza.
   BlobColumn get avatarBytes => blob().nullable()();
 
   /// Hay bytes elegidos que aún no se han podido subir (sin red al elegirlos).

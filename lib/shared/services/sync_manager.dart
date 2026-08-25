@@ -80,6 +80,11 @@ class SyncManager {
     'notes': 'usuario_id',
     'events': 'usuario_id',
     'routines': 'usuario_id',
+    // El perfil se identifica por `id`, no por una columna de dueño, y no lo
+    // lleva el motor genérico sino ProfileSyncService — [_procesarRealtime] lo
+    // trata aparte. Está aquí para que la suscripción se cree igual que las
+    // demás, filtrada a la fila propia.
+    'profiles': 'id',
   };
 
   SyncManager({
@@ -142,6 +147,14 @@ class SyncManager {
           value: usuarioId,
         ),
         callback: (payload) {
+          // `profiles` recibe un UPDATE cada 2 minutos que no interesa a nadie:
+          // el latido de presencia (`registrar_actividad`) toca solo
+          // `ultima_actividad` y `plataforma`. Si no se filtra, cada cliente se
+          // pone a sincronizar el perfil dos veces por hora para nada. Se
+          // reconoce porque `actualizado_en` no se movió — esa columna la
+          // escribe el cliente al editar, y el latido no la toca.
+          if (tabla == 'profiles' && _esLatidoDePresencia(payload)) return;
+
           // Solo resincronizamos la tabla que cambió (quirúrgico). INSERT/UPDATE
           // → incremental; DELETE → pasada completa de esa tabla.
           _tablasRtPendientes.add(tabla);
@@ -154,6 +167,21 @@ class SyncManager {
     });
     canal.subscribe();
     _canal = canal;
+  }
+
+  /// `true` si el evento de `profiles` viene del latido de presencia y no de
+  /// una edición de verdad.
+  ///
+  /// Depende de que la tabla tenga `REPLICA IDENTITY FULL` (lo pone
+  /// `deploy/db-init/23-storage.sql`), que es lo que hace que el payload traiga
+  /// también la fila anterior. Si no viniera, se deja pasar el evento: más vale
+  /// una sincronización de más que perderse un cambio.
+  static bool _esLatidoDePresencia(PostgresChangePayload payload) {
+    if (payload.eventType != PostgresChangeEvent.update) return false;
+    final antes = payload.oldRecord['actualizado_en'];
+    final despues = payload.newRecord['actualizado_en'];
+    if (antes == null || despues == null) return false;
+    return antes == despues;
   }
 
   /// Procesa el lote de tablas que Realtime avisó, sincronizando SOLO esas.
@@ -181,8 +209,13 @@ class SyncManager {
         await _aplicarTumbas(u);
         await _bajarYFusionar(u);
       }
-      final genericas =
-          tablas.where((t) => t != 'habits' && t != 'habit_completions');
+      // El perfil tiene su propio sincronizador: el motor genérico no sabe
+      // tratar una tabla que se identifica por `id` en vez de por dueño.
+      if (tablas.contains('profiles')) {
+        await _perfil.sincronizar(u);
+      }
+      final genericas = tablas.where((t) =>
+          t != 'habits' && t != 'habit_completions' && t != 'profiles');
       if (genericas.isNotEmpty) {
         await _generico.sincronizarTablas(u, genericas, incremental: !full);
       }

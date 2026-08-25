@@ -34,6 +34,10 @@ abstract class AppConstants {
   // ── Drift — nombre de la base de datos local ───────────────────────────────
   static const String driftDbName = 'glint_local.db';
 
+  // ── Storage — bucket de las fotos de perfil ────────────────────────────────
+  // Tiene que coincidir con el bucket que crea deploy/db-init/24-avatares.sql.
+  static const String bucketAvatares = 'avatares';
+
   // ── Sync ───────────────────────────────────────────────────────────────────
   static const Duration syncDebounce   = Duration(seconds: 5);
   static const Duration syncInterval   = Duration(minutes: 15);
