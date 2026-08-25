@@ -13,6 +13,7 @@ import 'package:glint/features/finance/presentation/finance_icons.dart';
 import 'package:glint/features/finance/presentation/privacidad_saldo.dart';
 import 'package:glint/shared/widgets/aparecer.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'finance_cubit.dart';
 import 'finance_state.dart';
 
@@ -43,7 +44,10 @@ class FinanceScreen extends StatelessWidget {
   }
 
   Widget _buildContenido(BuildContext context, FinanceLoaded state) {
-    return CustomScrollView(
+    return RefreshIndicator(
+      onRefresh: () => SyncManager.instance.refrescar(),
+      child: CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         // AppBar personalizado
         SliverAppBar(
@@ -108,6 +112,7 @@ class FinanceScreen extends StatelessWidget {
 
         const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
+      ),
     );
   }
 

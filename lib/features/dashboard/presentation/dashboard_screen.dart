@@ -8,6 +8,7 @@ import 'package:glint/core/constants/app_constants.dart';
 import 'package:glint/core/icons/app_icons.dart';
 import 'package:glint/core/navigation/ir_a.dart';
 import 'package:glint/core/theme/app_colors.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:glint/features/profile/presentation/profile_cubit.dart';
 import 'package:glint/features/profile/presentation/profile_state.dart';
@@ -79,7 +80,10 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: RefreshIndicator(
+          onRefresh: () => SyncManager.instance.refrescar(),
+          child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,6 +424,7 @@ class DashboardScreen extends StatelessWidget {
               ).animate().fadeIn(delay: 500.ms),
             ],
           ),
+        ),
         ),
       ),
     );

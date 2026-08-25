@@ -5,6 +5,7 @@ import 'package:glint/features/agenda/domain/event_entity.dart';
 import 'package:glint/core/icons/app_icons.dart';
 import 'package:glint/shared/widgets/aparecer.dart';
 import 'package:glint/shared/widgets/skeleton_lista.dart';
+import 'package:glint/shared/services/sync_manager.dart';
 import 'agenda_cubit.dart';
 import 'agenda_state.dart';
 import 'vista_dia_semana.dart';
@@ -215,7 +216,10 @@ class _AgendaContenido extends StatelessWidget {
 
     // Sin SliverAppBar propia: el título del periodo, el botón de Hoy y el
     // selector de vista ya los pone _BarraAgenda, que es común a las tres.
-    return CustomScrollView(
+    return RefreshIndicator(
+      onRefresh: () => SyncManager.instance.refrescar(),
+      child: CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         // Calendario
         SliverToBoxAdapter(
@@ -319,6 +323,7 @@ class _AgendaContenido extends StatelessWidget {
 
         const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
+      ),
     );
   }
 
