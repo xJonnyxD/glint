@@ -86,6 +86,10 @@ if [ "${1:-}" = "--deploy" ]; then
   # que está en producción, la app se sustituía por otra versión sin avisar.
   # Y el --delete borraba lo que no viniera en build/site/.
   scp -q build/site/descargas/glint.apk "$SERVIDOR:~/glint/web/descargas/glint.apk"
+  if [ -f build/site/descargas/glint-anterior.apk ]; then
+    scp -q build/site/descargas/glint-anterior.apk \
+      "$SERVIDOR:~/glint/web/descargas/glint-anterior.apk"
+  fi
   scp -q build/site/index.html "$SERVIDOR:~/glint/web/index.html"
   echo "Publicado en https://glint.yanes.xyz/descargas/glint.apk"
 fi

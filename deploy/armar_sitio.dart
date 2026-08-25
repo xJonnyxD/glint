@@ -83,24 +83,50 @@ void main() {
   var html = landing.readAsStringSync();
 
   if (apk.existsSync()) {
+    // Se guarda una copia en deploy/apk_versions/ (fuera de build/, que se
+    // borra con `flutter clean`) para poder ofrecer siempre la versión
+    // publicada anterior además de la nueva, y así poder alternar entre las
+    // dos sin tener que recompilar la vieja.
+    _archivarVersion(apk);
+    final versiones = _ultimasDosVersiones();
+
     apk.copySync('${descargas.path}/glint.apk');
-    final mb = (apk.lengthSync() / 1024 / 1024).toStringAsFixed(1);
-    final fecha = _formatoFechaHora(apk.lastModifiedSync());
+    final actual = versiones[0];
+    final mb = (actual.lengthSync() / 1024 / 1024).toStringAsFixed(1);
+    final fecha = _formatoFechaHora(actual.lastModifiedSync());
     // Cloudflare cachea el APK 4 horas (`max-age=14400`), así que tras publicar
     // uno nuevo el enlace seguía sirviendo el anterior: el usuario se descargaba
     // la versión vieja sin enterarse. El sufijo cambia la URL en cada
     // compilación y obliga al borde a ir a buscarlo. Misma técnica que se usa
     // con flutter_bootstrap.js más abajo.
-    final v = apk.lastModifiedSync().millisecondsSinceEpoch;
-    html = _reemplazarBloque(
-      html,
-      '<a class="btn btn-primary" href="/descargas/glint.apk?v=$v" download>'
-          'Descargar APK</a>\n'
-          '          <p style="margin:10px 0 0;font-size:.82rem">$mb MB · Android 8+</p>\n'
-          '          <p style="margin:4px 0 0;font-size:.75rem;opacity:.7">Actualizado: $fecha</p>',
-    );
+    final v = actual.lastModifiedSync().millisecondsSinceEpoch;
+
+    var bloque = '<a class="btn btn-primary" href="/descargas/glint.apk?v=$v" download>'
+        'Descargar APK</a>\n'
+        '          <p style="margin:10px 0 0;font-size:.82rem">$mb MB · Android 8+</p>\n'
+        '          <p style="margin:4px 0 0;font-size:.75rem;opacity:.7">Actualizado: $fecha</p>';
     stdout.writeln('APK incluido ($mb MB, actualizado $fecha, ?v=$v) '
         '— ${apk.path.split('/').last}');
+
+    // La versión anterior, si existe, se publica también para poder ir
+    // probando entre las dos.
+    if (versiones.length > 1) {
+      final anterior = versiones[1];
+      anterior.copySync('${descargas.path}/glint-anterior.apk');
+      final mbA = (anterior.lengthSync() / 1024 / 1024).toStringAsFixed(1);
+      final fechaA = _formatoFechaHora(anterior.lastModifiedSync());
+      final vA = anterior.lastModifiedSync().millisecondsSinceEpoch;
+      bloque += '\n'
+          '          <a class="btn btn-ghost btn-sm" style="margin-top:14px" '
+          'href="/descargas/glint-anterior.apk?v=$vA" download>'
+          'Descargar versión anterior</a>\n'
+          '          <p style="margin:8px 0 0;font-size:.75rem;opacity:.7">'
+          '$mbA MB · Actualizado: $fechaA</p>';
+      stdout.writeln('Versión anterior incluida (actualizado $fechaA) '
+          '— ${anterior.path.split('/').last}');
+    }
+
+    html = _reemplazarBloque(html, bloque);
   } else {
     // Sin APK el botón llevaría a un 404, así que se muestra el mismo aviso
     // que en iOS.
@@ -219,6 +245,49 @@ void _copiarPanelAdmin(Directory site) {
   final destino = Directory('${site.path}/admin')..createSync(recursive: true);
   File('${destino.path}/index.html').writeAsStringSync(html);
   stdout.writeln('Panel de administración en /admin/');
+}
+
+/// Carpeta donde se conservan los últimos APK compilados, fuera de `build/`
+/// (que `flutter clean` borra sin avisar). Guardar aquí la versión que se
+/// publicaba antes de recompilar es lo único que permite ofrecer "la versión
+/// anterior" en la web sin tener que volver a compilarla.
+Directory _dirVersiones() =>
+    Directory('deploy/apk_versions')..createSync(recursive: true);
+
+/// Copia el APK recién compilado a `deploy/apk_versions/` con un nombre
+/// basado en su fecha de modificación (que es la fecha real de compilación),
+/// y elimina las copias más antiguas que la segunda más reciente: solo hacen
+/// falta la actual y la anterior para poder alternar entre las dos.
+void _archivarVersion(File apk) {
+  final fecha = apk.lastModifiedSync();
+  String dos(int n) => n.toString().padLeft(2, '0');
+  final nombre =
+      'glint-${fecha.year}-${dos(fecha.month)}-${dos(fecha.day)}'
+      '_${dos(fecha.hour)}-${dos(fecha.minute)}.apk';
+  final destino = File('${_dirVersiones().path}/$nombre');
+  // Si ya existe una copia con la misma fecha (p. ej. se vuelve a armar el
+  // sitio sin recompilar) no hay nada que archivar de nuevo.
+  if (!destino.existsSync()) {
+    apk.copySync(destino.path);
+    final raw = destino.openSync(mode: FileMode.append);
+    raw.closeSync();
+    destino.setLastModifiedSync(fecha);
+  }
+
+  final restantes = _ultimasDosVersiones();
+  for (final f in _dirVersiones()
+      .listSync()
+      .whereType<File>()
+      .where((f) => !restantes.contains(f))) {
+    f.deleteSync();
+  }
+}
+
+/// Los dos APK más recientes de `deploy/apk_versions/`, más nuevo primero.
+List<File> _ultimasDosVersiones() {
+  final archivos = _dirVersiones().listSync().whereType<File>().toList()
+    ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+  return archivos.take(2).toList();
 }
 
 /// Formatea una fecha como `dd/MM/yyyy HH:mm` (para la fecha de actualización
