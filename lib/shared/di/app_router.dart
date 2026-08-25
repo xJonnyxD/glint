@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:glint/core/constants/app_constants.dart';
+import 'package:glint/core/feedback/haptica.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/core/icons/app_icons.dart';
 import 'package:glint/core/motion/route_transitions.dart';
@@ -346,6 +347,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   void _onTap(BuildContext context, int index) {
+    Haptica.seleccion();
     // El historial lo apunta [_registrarTab] en el build siguiente, que capta
     // por igual este toque y cualquier otra forma de llegar a la pestaña.
     _navigateTo(context, index);

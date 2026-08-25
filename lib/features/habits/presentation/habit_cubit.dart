@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:glint/core/feedback/haptica.dart';
+import 'package:glint/shared/widgets/celebracion.dart';
 import 'package:glint/features/habits/data/habit_repository.dart';
 import 'package:glint/features/habits/data/habit_reminder_service.dart';
 import 'package:glint/features/habits/domain/habit_entity.dart';
@@ -83,12 +85,19 @@ class HabitCubit extends Cubit<HabitState> {
   /// Marca o desmarca un hábito. Registra la completación en el historial.
   Future<void> toggleCompletar(HabitEntity habito) async {
     final completando = !habito.completadoHoy;
+    // Al completar, un golpe de éxito; al desmarcar, solo un toque ligero.
+    completando ? Haptica.exito() : Haptica.impactoLigero();
     final cambio = await _repo.toggleCompletar(habito, completando);
     // SEC-10: dar XP solo la PRIMERA vez que se completa el hábito hoy. Sin
     // esta reja, completar → descompletar → completar farmea XP infinito.
     if (completando && cambio && !await _xpYaDadoHoy(habito.id)) {
       await _marcarXpDadoHoy(habito.id);
-      await XpService.agregarXP(10, motivo: 'Hábito completado: ${habito.nombre}');
+      final subioNivel = await XpService.agregarXP(
+        10,
+        motivo: 'Hábito completado: ${habito.nombre}',
+      );
+      // Subir de nivel es un hito: se celebra por encima del hábito en sí.
+      if (subioNivel) Celebracion.lanzar();
     }
     _sincronizar();
   }

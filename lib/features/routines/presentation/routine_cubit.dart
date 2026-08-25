@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:glint/core/feedback/haptica.dart';
 import 'package:glint/features/routines/data/routine_repository.dart';
 import 'package:glint/features/routines/domain/routine_entity.dart';
 import 'package:glint/shared/services/notification_service.dart';
 import 'package:glint/shared/services/xp_service.dart';
+import 'package:glint/shared/widgets/celebracion.dart';
 import 'routine_state.dart';
 
 /// RoutineCubit — maneja toda la lógica de rutinas
@@ -62,10 +64,16 @@ class RoutineCubit extends Cubit<RoutineState> {
         ? rutina.rachaActual + 1
         : rutina.rachaActual;
 
+    // Al completar, un golpe de éxito; al desmarcar, solo un toque ligero.
+    !rutina.completadaHoy ? Haptica.exito() : Haptica.impactoLigero();
     await _repo.toggleCompletar(rutina.id, !rutina.completadaHoy);
     if (!rutina.completadaHoy) {
       await _repo.actualizarRacha(rutina.id, nuevaRacha);
-      await XpService.agregarXP(15, motivo: 'Rutina completada: ${rutina.nombre}');
+      final subioNivel = await XpService.agregarXP(
+        15,
+        motivo: 'Rutina completada: ${rutina.nombre}',
+      );
+      if (subioNivel) Celebracion.lanzar();
     }
   }
 

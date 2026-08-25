@@ -58,12 +58,16 @@ class XpService {
   }
 
   // ─── Agregar XP ─────────────────────────────────────────────────────────────
-  static Future<void> agregarXP(int xp, {String motivo = ''}) async {
-    if (_usuarioActual == null) return;
+  /// Suma [xp] al total y devuelve `true` si con ello el usuario **subió de
+  /// nivel** (para disparar una celebración). Los llamantes que no lo necesiten
+  /// pueden ignorar el resultado.
+  static Future<bool> agregarXP(int xp, {String motivo = ''}) async {
+    if (_usuarioActual == null) return false;
     final prefs = await SharedPreferences.getInstance();
     await _migrarLegacy(prefs);
     final actual = prefs.getInt(_keyXp) ?? 0;
-    await prefs.setInt(_keyXp, actual + xp);
+    final nuevo = actual + xp;
+    await prefs.setInt(_keyXp, nuevo);
 
     // Guardar en historial (últimas 20 acciones)
     final historialRaw = prefs.getStringList(_keyHist) ?? [];
@@ -77,7 +81,10 @@ class XpService {
     await prefs.setStringList(_keyHist, historialRaw);
 
     // Sincroniza el total con el servidor para el ranking entre amigos.
-    unawaited(_pushXP(actual + xp));
+    unawaited(_pushXP(nuevo));
+
+    // Hubo subida de nivel si el nombre del nivel cambió al cruzar el umbral.
+    return infoNivel(nuevo)['nombre'] != infoNivel(actual)['nombre'];
   }
 
   // ─── Ranking entre amigos (servidor) ────────────────────────────────────────

@@ -9,7 +9,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/app_constants.dart';
+import 'core/feedback/haptica.dart';
 import 'core/theme/app_theme.dart';
+import 'shared/widgets/celebracion.dart';
 import 'core/theme/theme_cubit.dart';
 import 'features/auth/presentation/auth_cubit.dart';
 import 'features/auth/presentation/auth_state.dart';
@@ -97,6 +99,9 @@ Future<void> main() async {
   // Inicializar sistema de notificaciones locales
   await NotificationService.initialize();
   await NotificationHandler.initialize();
+
+  // Preferencia de háptica (no-op en web); cacheada para no leerla en cada toque.
+  await Haptica.cargar();
 
   // Base de datos local Drift (singleton para toda la app)
   final appDatabase = AppDatabase();
@@ -191,8 +196,9 @@ class _GlintAppState extends State<GlintApp> with WidgetsBindingObserver {
             ],
             // Usamos builder para agregar RoutineCubit cuando el usuario está autenticado
             builder: (context, child) {
-              return AppResponsiva(
-                child: OfflineBanner(
+              return CelebracionHost(
+                child: AppResponsiva(
+                  child: OfflineBanner(
                   child: BlocConsumer<AuthCubit, GlintAuthState>(
                     listener: (context, authState) {
                       if (authState is AuthAuthenticated) {
@@ -287,7 +293,8 @@ class _GlintAppState extends State<GlintApp> with WidgetsBindingObserver {
                     },
                   ),
                 ),
-              );
+              ),
+            );
             },
         ),
       ),

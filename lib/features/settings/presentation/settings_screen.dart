@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:glint/core/constants/app_constants.dart';
+import 'package:glint/core/feedback/haptica.dart';
 import 'package:glint/core/theme/theme_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_cubit.dart';
 import 'package:glint/features/auth/presentation/auth_state.dart';
@@ -35,6 +36,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _horaRutinas  = '07:00';
   String _horaHabitos  = '18:00';
 
+  // ── Experiencia ────────────────────────────────────────────────────────────
+  bool _haptica = true;
+
   // ── Keys de preferencias ───────────────────────────────────────────────────
   static const _kNotifRutinas  = 'glint_notif_rutinas';
   static const _kNotifHabitos  = 'glint_notif_habitos';
@@ -61,6 +65,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _notifsAgenda  = prefs.getBool(_kNotifAgenda)  ?? false;
         _horaRutinas   = prefs.getString(_kHoraRutinas) ?? '07:00';
         _horaHabitos   = prefs.getString(_kHoraHabitos) ?? '18:00';
+        _haptica       = Haptica.activada;
         _cargando = false;
       });
     }
@@ -110,6 +115,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kNotifAgenda, valor);
     if (mounted) setState(() => _notifsAgenda = valor);
+  }
+
+  Future<void> _toggleHaptica(bool valor) async {
+    await Haptica.definir(valor);
+    // Al activarla, un toque para que se sienta de inmediato lo que hace.
+    if (valor) Haptica.seleccion();
+    if (mounted) setState(() => _haptica = valor);
   }
 
   Future<void> _cambiarHoraRutinas() async {
@@ -579,6 +591,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle: const Text('Recordatorio 30 min antes de cada evento'),
                       value: _notifsAgenda,
                       onChanged: _toggleAgenda,
+                    ),
+                  ),
+                ),
+
+                // Háptica (vibración al tocar). No es una notificación, pero
+                // vive aquí por ser otra preferencia de la experiencia.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Card(
+                    child: SwitchListTile(
+                      secondary: Icon(Icons.vibration,
+                          color: colorScheme.primary),
+                      title: const Text('Vibración'),
+                      subtitle: const Text(
+                          'Respuesta táctil al completar y navegar'),
+                      value: _haptica,
+                      onChanged: _toggleHaptica,
                     ),
                   ),
                 ),
