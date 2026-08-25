@@ -12,6 +12,22 @@
 --     ssh jonny@192.168.1.9 'docker exec -i glint-db psql -U postgres -d postgres'
 -- ============================================================================
 
+-- ── Acceso de los roles de la API al esquema storage ────────────────────────
+-- storage-api evalúa la RLS cambiando de rol a `authenticated`/`anon`. Para que
+-- esos roles "vean" storage.objects/buckets hace falta USAGE sobre el esquema y
+-- privilegios sobre sus tablas; sin ello fallan con 42P01 "relation objects
+-- does not exist" (el esquema del search_path no es visible para el rol). Las
+-- FILAS siguen protegidas por las políticas RLS de más abajo — esto solo abre
+-- la puerta del esquema, no de los datos. Es lo que hace la init de Supabase.
+grant usage on schema storage to anon, authenticated, service_role;
+grant all on all tables    in schema storage to anon, authenticated, service_role;
+grant all on all sequences in schema storage to anon, authenticated, service_role;
+-- Y para las tablas que storage-api cree en el futuro (migraciones nuevas):
+alter default privileges for role supabase_storage_admin in schema storage
+  grant all on tables    to anon, authenticated, service_role;
+alter default privileges for role supabase_storage_admin in schema storage
+  grant all on sequences to anon, authenticated, service_role;
+
 -- ── El bucket ───────────────────────────────────────────────────────────────
 -- `public = true` significa que la LECTURA no pide token, y es deliberado:
 -- la foto tiene que poder pintarse en la lista de amigos, en el ranking y en el

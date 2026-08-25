@@ -36,6 +36,14 @@ grant usage on schema public to supabase_storage_admin;
 -- refuerza además con PGOPTIONS, igual que hubo que hacer en el stack de vet.
 alter role supabase_storage_admin set search_path = storage, public;
 
+-- storage-api CAMBIA DE ROL a `authenticated`/`anon` en cada petición para
+-- evaluar la RLS como el usuario (`set_config('role', ...)`). Para que Postgres
+-- permita ese cambio, el rol de conexión tiene que ser MIEMBRO de esos roles;
+-- si no, lo rechaza con 42501 "permission denied to set role" y NINGUNA subida
+-- ni lectura funciona (se destapó porque había 0 objetos subidos pese a que el
+-- cliente sí lo intentaba). Es lo que Supabase concede por defecto.
+grant anon, authenticated, service_role to supabase_storage_admin;
+
 -- ── Realtime del perfil ─────────────────────────────────────────────────────
 -- `profiles` estaba fuera de la publicación por miedo a un bucle: el latido de
 -- presencia (`registrar_actividad`) hace UPDATE de la fila cada 2 minutos.
