@@ -37,6 +37,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Copias de los últimos APK compilados (caché local para publicar la versión
+# anterior sin recompilarla). Son binarios grandes y se regeneran solos.
+/deploy/apk_versions/
+
 # Symbolication related
 app.*.symbols
 

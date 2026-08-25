@@ -274,11 +274,15 @@ void _archivarVersion(File apk) {
     destino.setLastModifiedSync(fecha);
   }
 
-  final restantes = _ultimasDosVersiones();
+  // Comparar por RUTA, no por objeto File: Dart no define `==` en File (usa
+  // identidad), así que `restantes.contains(f)` con instancias distintas del
+  // mismo archivo era siempre falso y borraba TODAS las versiones, dejando la
+  // carpeta vacía.
+  final restantes = _ultimasDosVersiones().map((f) => f.path).toSet();
   for (final f in _dirVersiones()
       .listSync()
       .whereType<File>()
-      .where((f) => !restantes.contains(f))) {
+      .where((f) => !restantes.contains(f.path))) {
     f.deleteSync();
   }
 }
